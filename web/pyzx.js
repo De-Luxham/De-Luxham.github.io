@@ -21,15 +21,6 @@ require(['pyodid'], function(pyodid) {
     });  
 });
 
-require(['pyodid'], function(pyodid) {
-    languagePluginLoader.then(function ()  {
-    pyodide.remotePath
-    pyodide.remotePath = "https://de-luxham.github.io/pyzx-master/pyzx/"
-    pyodide.runPython('import rules')
-    
-
-    }); 
-});
 
 
     
