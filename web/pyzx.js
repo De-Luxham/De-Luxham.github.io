@@ -501,8 +501,9 @@ require(['pyodid'], function(pyodid) {
                 console.log(pyodide.runPython('import sys'));
                 console.log(pyodide.runPython(`print('hello world')`));
                 pyodide.remotePath
-                pyodide.remotePath = "https://de-luxham.github.io/Implementer.py"
-                pyodide.runPython('import Implementer')
+                pyodide.remotePath = "https://de-luxham.github.io/"
+                pyodide.runPythonAsync('import Implementer\n')
+                console.log('Implementer imported')
                 //pyodide.runPython('Implement_Rules('.concat(rule_string,')'))
 
                 });  
