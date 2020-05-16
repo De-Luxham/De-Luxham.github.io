@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <script>
+      window.languagePluginUrl = "./";
+    </script>
+    <script src="./pyodide.js"></script>
+  </head>
+  <body>
+    <script>
+      languagePluginLoader.then(() => {
+        pyodide.remotePath = ["/"];
+        pyodide.runPythonAsync("import xyz\nxyz.sayHello()");
+      });
+    </script>
+  </body>
+</html>
