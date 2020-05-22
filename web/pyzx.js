@@ -8,7 +8,14 @@ define(['d3'], function(d3) {
     console.log(pyodide.runPython(`print('hello world')`));
     });  
 });
- 
+require(['pyodid'], function(pyodid) {
+    languagePluginLoader.then(function ()  {
+    pyodide.remotePath
+    pyodide.remotePath = "https://de-luxham.github.io/web"
+    pyodide.runPythonAsync('import xyz\n');
+    console.log('imported xyz');
+    });  
+}); 
 require(['pyodid'], function(pyodid) {
     languagePluginLoader.then(function ()  {
     pyodide.remotePath
