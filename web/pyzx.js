@@ -11,9 +11,9 @@ define(['d3'], function(d3) {
 require(['pyodid'], function(pyodid) {
     languagePluginLoader.then(function ()  {
     pyodide.remotePath
-    pyodide.remotePath = "https://de-luxham.github.io/web"
-    pyodide.runPythonAsync('import xyz\n');
-    console.log('imported xyz');
+    pyodide.remotePath = "https://de-luxham.github.io/"
+    pyodide.runPythonAsync('import test_print\n');
+    pyodide.runPythonAsync('printer()');
     });  
 }); 
 require(['pyodid'], function(pyodid) {
