@@ -11,7 +11,7 @@ define(['d3'], function(d3) {
 require(['pyodid'], function(pyodid) {
     languagePluginLoader.then(function ()  {
     pyodide.remotePath
-    pyodide.remotePath = "https://de-luxham.github.io/web"
+    pyodide.remotePath = "https://de-luxham.github.io/"
     pyodide.runPython('import py_modules');
     console.log(pyodide.runPython('Modules imported'));
     });  
