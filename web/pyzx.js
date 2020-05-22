@@ -10,14 +10,10 @@ define(['d3'], function(d3) {
 });
 require(['pyodid'], function(pyodid) {
     languagePluginLoader.then(function ()  {
-    console.log(pyodide.runPython('import sys'));
-    console.log(pyodide.runPython(`print('hello seb')`));
-    });  
-});
-require(['pyodid'], function(pyodid) {
-    languagePluginLoader.then(function ()  {
-    console.log(pyodide.runPython('import sys'));
-    console.log(pyodide.runPython(`print('hello quinn')`));
+    pyodide.remotePath
+    pyodide.remotePath = "https://de-luxham.github.io/web"
+    pyodide.runPython('import py_modules');
+    console.log(pyodide.runPython('Modules imported'));
     });  
 });
 
