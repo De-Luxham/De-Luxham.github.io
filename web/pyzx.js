@@ -13,7 +13,7 @@ require(['pyodid'], function(pyodid) {
     pyodide.remotePath
     pyodide.remotePath = "https://de-luxham.github.io/"
     pyodide.runPythonAsync('import test_print\n');
-    pyodide.runPythonAsync('printer()');
+    pyodide.runPythonAsync('test_print.printer()');
     });  
 }); 
 require(['pyodid'], function(pyodid) {
