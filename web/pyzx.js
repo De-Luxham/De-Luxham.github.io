@@ -12,8 +12,8 @@ require(['pyodid'], function(pyodid) {
     languagePluginLoader.then(function ()  {
     pyodide.remotePath
     pyodide.remotePath = "https://de-luxham.github.io/"
-    pyodide.runPythonAsync('import test_print\n');
-    pyodide.runPythonAsync('test_print.printer()');
+    pyodide.runPython('import test_print\n');
+    pyodide.runPython('test_print.printer()');
     });  
 }); 
 require(['pyodid'], function(pyodid) {
