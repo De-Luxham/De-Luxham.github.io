@@ -7,7 +7,7 @@ var languagePluginLoader = new Promise((resolve, reject) => {
   // deployed location. TODO: This should be done in a less hacky
   // way.
   //var baseURL = self.languagePluginUrl || 'https://de-luxham.github.io/web/';
-  var baseURL = '';
+  var baseURL = './web';
   baseURL = baseURL.substr(0, baseURL.lastIndexOf('/')) + '/';
 
   ////////////////////////////////////////////////////////////
