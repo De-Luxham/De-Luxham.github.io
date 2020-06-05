@@ -20,7 +20,7 @@ require(['pyodid'], function(pyodid) {
     languagePluginLoader.then(function ()  {
     pyodide.remotePath
     pyodide.remotePath = "https://de-luxham.github.io/"
-    pyodide.runPythonAsync('import py_modules\n');
+    pyodide.runPython('import py_modules\n');
     console.log('Modules imported');
     });  
 });
