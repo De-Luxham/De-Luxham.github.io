@@ -10,6 +10,13 @@ define(['d3'], function(d3) {
 });
 require(['pyodid'], function(pyodid) {
     languagePluginLoader.then(function ()  {
+    pyodide.remotePath
+    pyodide.remotePath = "https://de-luxham.github.io/web/";
+    pyodide.runPython('import xyz\n');
+    });  
+})
+require(['pyodid'], function(pyodid) {
+    languagePluginLoader.then(function ()  {
     console.log(self.language)
     pyodide.remotePath
     pyodide.remotePath = ["/"];
