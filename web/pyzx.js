@@ -134,8 +134,10 @@ require(['pyodid'], function(pyodid) {
             //.each(function() { this.focus(); })
             .append("svg")
             .attr("style", "max-width: none; max-height: none")
-            .attr("width", width)
-            .attr("height", height);
+            .attr("width", width + 100)
+            .attr("height", height + 500);
+            //added offset to dimensions of canvas
+
 
         //Set up connectivity graph inbetween these lines
         //Connectivity Graph
@@ -146,13 +148,16 @@ require(['pyodid'], function(pyodid) {
         var qnodes = []
 
         for (let i = 0; i < num_qubits; i++) {
-            qnodes.push({name:i, x:graph.nodes[i].x, y:graph.nodes[i].y, t:4, phase:'', selecetd:false, previouslySelected:false, index:i, vy:0, vx:0});
+            qnodes.push({name:i, x:graph.nodes[i].x, y:graph.nodes[i].y, t:4,empty:false, phase:'', selecetd:false, previouslySelected:false, index:i, vy:0, vx:0});
         }
 
         //updates the connectivity object with node object data
         for (let i = 0; i < connectivity.connections.length; i++) {
-            connectivity.connections[i].source = graph.nodes[connectivity.connections[i].source];
-            connectivity.connections[i].target = graph.nodes[connectivity.connections[i].target];
+
+            // connectivity.connections[i].source = graph.nodes[connectivity.connections[i].source];
+            // connectivity.connections[i].target = graph.nodes[connectivity.connections[i].target];
+            connectivity.connections[i].source = qnodes[connectivity.connections[i].source];
+            connectivity.connections[i].target = qnodes[connectivity.connections[i].target];
         }
 
         var connectivity_graph = {nodes: qnodes,links:connectivity.connections};
@@ -298,54 +303,44 @@ require(['pyodid'], function(pyodid) {
         function update() {
         
         console.log("graph updated");
-         /*link = svg.select("g").selectAll("line").data(graph.links);
-         
-         node = svg.select("g").selectAll("g").data(graph.nodes);
-         
-         node.exit().remove();
-         
-         link.exit().remove();*/
         
         
 
-         
-         
-        
-            
-            //separate
             
             svg.selectAll("g").remove();
-            
+
             clink  = svg.append("g")
-       .attr("class", "link")
-       .selectAll("line")
-       .data(connectivity_graph.links)
-       .enter().append("line")
-       .attr("stroke", "black")
-       .attr("style", "stroke-width: 1.5px")
-       .attr("marker-end", "url(#end)");
-
-       
-        cnode = svg.append("g")
-           .attr("class", "node")
-           .selectAll("g")
-           .data(connectivity_graph.nodes)
-           .enter().append("g")
-           .attr("transform", function(d) {
-               return "translate(" + d.x + "," + d.y +")";
-           });
-
-       cnode.append("circle")
-           .attr("r", function(d) {
-              return 0.75*node_size;
-           })
-           .attr("fill", function(d) { return nodeColor(d.t); })
-           .attr("stroke", "black");
-
-           clink.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+                .attr("class", "link")
+                .selectAll("line")
+                .data(connectivity_graph.links)
+                .enter().append("line")
+                .attr("stroke", "black")
+                .attr("style", "stroke-width: 1.5px")
+                .attr("marker-end", "url(#end)");
+         
+                
+                 cnode = svg.append("g")
+                    .attr("class", "node")
+                    .selectAll("g")
+                    .data(connectivity_graph.nodes)
+                    .enter().append("g")
+                    .attr("transform", function(d) {
+                        return "translate(" + d.x + "," + d.y +")";
+                    });
+         
+                cnode.append("circle")
+                    .attr("r", function(d) {
+                       return 0.75*node_size;
+                    })
+                    .attr("fill", function(d) { return nodeColor(d.t); })
+                    .attr("stroke", "black");
+         
+                    clink.attr("x1", function(d) { return d.source.x; })
+                 .attr("y1", function(d) { return d.source.y; })
+                 .attr("x2", function(d) { return d.target.x; })
+                 .attr("y2", function(d) { return d.target.y; }); 
+            
+            
             
             
             link = svg.append("g")
@@ -392,6 +387,11 @@ require(['pyodid'], function(pyodid) {
             .attr("font-size", "12px")
             .attr("font-family", "monospace")
             .attr("fill", "#00d");
+
+        link.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
             
         if (show_labels) {
             node.append("text")
@@ -409,10 +409,10 @@ require(['pyodid'], function(pyodid) {
       
         simulation.force("link")
                 .links(graph.links);     
+              
             
-            
-            
-            console.log(node);
+            console.log(connectivity_graph);
+            console.log(graph);
             
             //BIG ASS TEST CODE TEMPOARY BETWEEN THESE LINES
             
@@ -853,8 +853,9 @@ require(['pyodid'], function(pyodid) {
             //stuff to keep nodes inside a box
             
             node.attr("transform", function(d) {
-                d.x = Math.max(radius, Math.min(width - radius, d.x));
-                d.y = Math.max(radius, Math.min(height - radius, d.y));
+                d.x = Math.max(radius, Math.min(width - radius -100, d.x));
+                //manualy changed height of box with offset
+                d.y = Math.max(radius, Math.min(height - radius -100, d.y));
                 return "translate(" + d.x + "," + d.y +")";
              })
         
@@ -1144,6 +1145,8 @@ require(['pyodid'], function(pyodid) {
             if (selected_node.t == 0) {
                 //set the qubit node to a red spider
                 selected_node.t = 2;
+                //change connectivity to empty status (used to verify if spider can reconnect to qubit node)
+                
                 update();
                 d.selected = false;
 
