@@ -572,6 +572,8 @@ define(['d3'], function(d3) {
                 #webbrowser.open(url,2)
                 #==================
                 print(graph)
+                qasm = zx.extract.extract_circuit(graph).to_basic_gates().to_qasm()
+                return qasm
             Implement_Rules(`.concat(rule_string,')')
             
             
@@ -586,7 +588,21 @@ define(['d3'], function(d3) {
 
                 // }); 
                 pyodide.loadPackage('matplotlib').then(() => {
-                    pyodide.runPython(pythonCode2);
+                    var qasm
+                    qasm = pyodide.runPython(pythonCode2);
+                    console.log(qasm)
+                    var circuit = new QuantumCircuit();
+                    circuit.importQASM(qasm, function(errors) {
+                        console.log(errors);
+                    });
+                    // Assuming we have <div id="drawing"></div> somewhere in HTML
+                    var container = document.getElementById("circuit");
+
+                    // SVG is returned as string
+                    var svg = circuit.exportSVG(true);
+
+                    // add SVG into container
+                    container.innerHTML = svg;
                   });
                 // languagePluginLoader.then(() => {
                 //     pyodide.runPython(pythonCode2);
