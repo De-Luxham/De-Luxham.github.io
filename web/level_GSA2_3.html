@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+    <meta charset="utf-8">
+    <style> body { font-family: sans-serif; }
+.div1 {
+  margin: auto;
+  width: 1000px;
+  height: 500px;
+}
+.div2 {
+  margin: auto;
+  width: 500px;
+  height: 200px;
+}
+    </style>
+    <body>
+    <div class="div2" id="circuit"></div>
+    <div  class="div1" style="overflow:auto"  id="graph-output-1" ></div>
+    <script type="text/javascript" src="https://unpkg.com/quantum-circuit"></script>
+    <script src="require.js"></script>
+    <!--<script>window.languagePluginUrl = "https://de-luxham.github.io/web/";</script>-->
+    
+    <script type="text/javascript" src="https://pyodide-cdn2.iodide.io/v0.15.0/full/pyodide.js"></script>
+    
+    <script type="text/javascript">
+    
+     require.config({
+            paths: {
+                    "d3": "d3.v4.min",
+                    "pyzx": "pyzx",
+                    "pyodid": "pyodide" //This is a CDN and could be unstable, long term should be changed to local files pyodide.js
+                    }
+            });require(['pyzx'], function(pyzx) {
+            pyzx.showGraph('#graph-output-1',
+            JSON.parse('{"nodes": [{"name": "0", "x": 40.0, "y": 80.0, "t": 0, "phase": ""}, {"name": "1", "x": 40.0, "y": 120.0, "t": 0, "phase": ""}, {"name": "2", "x": 40.0, "y": 160.0, "t": 0, "phase": ""}, {"name": "3", "x": 80.0, "y": 80.0, "t": 1, "phase": ""}, {"name": "4", "x": 80.0, "y": 120.0, "t": 1, "phase": ""}, {"name": "5", "x": 80.0, "y": 160.0, "t": 1, "phase": ""}, {"name": "6", "x": 120.0, "y": 160.0, "t": 1, "phase": ""}, {"name": "7", "x": 160.0, "y": 160.0, "t": 2, "phase": ""}, {"name": "8", "x": 160.0, "y": 120.0, "t": 1, "phase": ""}, {"name": "9", "x": 200.0, "y": 160.0, "t": 1, "phase": "7\u03c0/4"}, {"name": "10", "x": 240.0, "y": 160.0, "t": 2, "phase": ""}, {"name": "11", "x": 240.0, "y": 80.0, "t": 1, "phase": ""}, {"name": "12", "x": 280.0, "y": 160.0, "t": 1, "phase": "\u03c0/4"}, {"name": "13", "x": 320.0, "y": 160.0, "t": 2, "phase": ""}, {"name": "14", "x": 320.0, "y": 120.0, "t": 1, "phase": ""}, {"name": "15", "x": 360.0, "y": 160.0, "t": 1, "phase": "7\u03c0/4"}, {"name": "16", "x": 400.0, "y": 160.0, "t": 2, "phase": ""}, {"name": "17", "x": 400.0, "y": 80.0, "t": 1, "phase": ""}, {"name": "18", "x": 360.0, "y": 120.0, "t": 1, "phase": "\u03c0/4"}, {"name": "19", "x": 440.0, "y": 160.0, "t": 1, "phase": "\u03c0/4"}, {"name": "20", "x": 440.0, "y": 120.0, "t": 2, "phase": ""}, {"name": "21", "x": 440.0, "y": 80.0, "t": 1, "phase": ""}, {"name": "22", "x": 480.0, "y": 80.0, "t": 1, "phase": "\u03c0/4"}, {"name": "23", "x": 480.0, "y": 120.0, "t": 1, "phase": "7\u03c0/4"}, {"name": "24", "x": 520.0, "y": 120.0, "t": 2, "phase": ""}, {"name": "25", "x": 520.0, "y": 80.0, "t": 1, "phase": ""}, {"name": "26", "x": 480.0, "y": 160.0, "t": 1, "phase": ""}, {"name": "27", "x": 560.0, "y": 80.0, "t": 1, "phase": ""}, {"name": "28", "x": 560.0, "y": 120.0, "t": 1, "phase": ""}, {"name": "29", "x": 600.0, "y": 80.0, "t": 2, "phase": "\u03c0"}, {"name": "30", "x": 600.0, "y": 120.0, "t": 2, "phase": "\u03c0"}, {"name": "31", "x": 640.0, "y": 120.0, "t": 1, "phase": ""}, {"name": "32", "x": 640.0, "y": 80.0, "t": 1, "phase": ""}, {"name": "33", "x": 680.0, "y": 80.0, "t": 2, "phase": "\u03c0"}, {"name": "34", "x": 680.0, "y": 120.0, "t": 2, "phase": "\u03c0"}, {"name": "35", "x": 720.0, "y": 80.0, "t": 1, "phase": ""}, {"name": "36", "x": 720.0, "y": 120.0, "t": 1, "phase": ""}, {"name": "37", "x": 760.0, "y": 80.0, "t": 0, "phase": ""}, {"name": "38", "x": 760.0, "y": 120.0, "t": 0, "phase": ""}, {"name": "39", "x": 760.0, "y": 160.0, "t": 0, "phase": ""}], "links": [{"source": "0", "target": "3", "t": 2}, {"source": "1", "target": "4", "t": 2}, {"source": "2", "target": "5", "t": 2}, {"source": "3", "target": "11", "t": 1}, {"source": "4", "target": "8", "t": 1}, {"source": "5", "target": "6", "t": 2}, {"source": "6", "target": "7", "t": 1}, {"source": "7", "target": "8", "t": 1}, {"source": "7", "target": "9", "t": 1}, {"source": "8", "target": "14", "t": 1}, {"source": "9", "target": "10", "t": 1}, {"source": "10", "target": "11", "t": 1}, {"source": "10", "target": "12", "t": 1}, {"source": "11", "target": "17", "t": 1}, {"source": "12", "target": "13", "t": 1}, {"source": "13", "target": "14", "t": 1}, {"source": "13", "target": "15", "t": 1}, {"source": "14", "target": "18", "t": 1}, {"source": "15", "target": "16", "t": 1}, {"source": "16", "target": "17", "t": 1}, {"source": "16", "target": "19", "t": 1}, {"source": "17", "target": "21", "t": 1}, {"source": "18", "target": "20", "t": 1}, {"source": "19", "target": "26", "t": 2}, {"source": "20", "target": "21", "t": 1}, {"source": "20", "target": "23", "t": 1}, {"source": "21", "target": "22", "t": 1}, {"source": "22", "target": "25", "t": 1}, {"source": "23", "target": "24", "t": 1}, {"source": "24", "target": "25", "t": 1}, {"source": "24", "target": "28", "t": 2}, {"source": "25", "target": "27", "t": 2}, {"source": "26", "target": "39", "t": 1}, {"source": "27", "target": "29", "t": 1}, {"source": "28", "target": "30", "t": 1}, {"source": "29", "target": "32", "t": 1}, {"source": "30", "target": "31", "t": 1}, {"source": "31", "target": "32", "t": 2}, {"source": "31", "target": "34", "t": 1}, {"source": "32", "target": "33", "t": 1}, {"source": "33", "target": "35", "t": 2}, {"source": "34", "target": "36", "t": 2}, {"source": "35", "target": "37", "t": 1}, {"source": "36", "target": "38", "t": 1}]}'), 800.0, 240.0, 8.0);
+        });
+        </script>

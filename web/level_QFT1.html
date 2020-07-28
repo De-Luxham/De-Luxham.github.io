@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+    <meta charset="utf-8">
+    <style> body { font-family: sans-serif; }
+.div1 {
+  margin: auto;
+  width: 1000px;
+  height: 500px;
+}
+.div2 {
+  margin: auto;
+  width: 500px;
+  height: 200px;
+}
+    </style>
+    <body>
+    <div class="div2" id="circuit"></div>
+    <div  class="div1" style="overflow:auto"  id="graph-output-1" ></div>
+    <script type="text/javascript" src="https://unpkg.com/quantum-circuit"></script>
+    <script src="require.js"></script>
+    <!--<script>window.languagePluginUrl = "https://de-luxham.github.io/web/";</script>-->
+    
+    <script type="text/javascript" src="https://pyodide-cdn2.iodide.io/v0.15.0/full/pyodide.js"></script>
+    
+    <script type="text/javascript">
+    
+     require.config({
+            paths: {
+                    "d3": "d3.v4.min",
+                    "pyzx": "pyzx",
+                    "pyodid": "pyodide" //This is a CDN and could be unstable, long term should be changed to local files pyodide.js
+                    }
+            });require(['pyzx'], function(pyzx) {
+            pyzx.showGraph('#graph-output-1',
+            JSON.parse('{"nodes": [{"name": "0", "x": 50, "y": 100, "t": 0, "phase": ""}, {"name": "1", "x": 100, "y": 100, "t": 1, "phase": ""}, {"name": "2", "x": 150, "y": 100, "t": 0, "phase": ""}], "links": [{"source": "0", "target": "1", "t": 2}, {"source": "1", "target": "2", "t": 1}]}'), 200, 200, 10.0);
+        });
+        </script>

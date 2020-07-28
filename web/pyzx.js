@@ -441,8 +441,8 @@ define(['d3'], function(d3) {
                 
                     var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
                     
-                    
-                    var connected_same_type_nodes = selected_node.nhd.filter(function(d) {return selected_node.t == d.t;});
+                    //checks for nodes connected of teh same type and by a type 0 edge
+                    var connected_same_type_nodes = selected_node.nhd.filter(function(d) {return (selected_node.t == d.t) && (connected_by_type0edge(selected_node,d));});
                 
                 //apply fusion rule when checks passed
                     var to_fuse = false;
@@ -572,7 +572,9 @@ define(['d3'], function(d3) {
                 #webbrowser.open(url,2)
                 #==================
                 print(graph)
-                qasm = zx.extract.extract_circuit(graph).to_basic_gates().to_qasm()
+                circ_dat =zx.extract.extract_circuit(graph,optimize_czs=False, optimize_cnots=0).to_basic_gates()
+                print(circ_dat.stats())
+                qasm = circ_dat.to_qasm()
                 return qasm
             Implement_Rules(`.concat(rule_string,')')
             
@@ -615,6 +617,14 @@ define(['d3'], function(d3) {
         //returns true if nodes have collided
         function collided(node1,node2) {
             return 2*radius >= Math.abs(Math.sqrt(Math.pow(node1.x-node2.x,2)+Math.pow(node1.y-node2.y,2)));
+        }
+        function connected_by_type0edge(node1,node2) {
+            //get links connecting nodes
+            var connecting_links
+            connecting_links = graph.links.filter(function(d) {return (is_link(d,node1,node2)); });
+            var type0 = true
+            connecting_links.forEach(function(d) {if (d.t == 2){type0 = false}})
+            return type0
         }
         //Get index of link that connects two nodes
         function i_link(n1,n2) {
@@ -704,15 +714,7 @@ define(['d3'], function(d3) {
             console.log("fusion applied");
             
             //remove connecting link
-            
-            
-            
             graph.links = graph.links.filter(function(d) {return !(is_link(d,selected_node,dead_node)); });
-            
-        
-            
-        
-            
             //set links whose target is deadnode to selecetd node
             graph.links.forEach(function(d) {
                 if (d.target.name.localeCompare(dead_node.name) == 0) {
@@ -1002,7 +1004,7 @@ define(['d3'], function(d3) {
                     var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
                     
                     
-                    var connected_same_type_nodes = selected_node.nhd.filter(function(d) {return selected_node.t == d.t;});
+                    var connected_same_type_nodes = selected_node.nhd.filter(function(d) {return (selected_node.t == d.t) && (connected_by_type0edge(selected_node,d));});
                 
                 //apply fusion rule when checks passed
                     var to_fuse = false;
@@ -1029,18 +1031,7 @@ define(['d3'], function(d3) {
                     
                      }
                 
-                }
-                
-                
-            
-                
-                 
-                    
-            
-                
-                
-                 
-                
+                }  
             }).on("end", function() {console.log("mouseup");
                 graph.nodes.forEach(function(d) {d.selected = false;}); 
                 rule_applied = false;}));
@@ -1218,7 +1209,8 @@ define(['d3'], function(d3) {
                 //set the qubit node to a red spider
                 selected_node.t = 2;
                 //change connectivity to empty status (used to verify if spider can reconnect to qubit node)
-                
+                qnodes.filter(function(d) {return d.name == selected_node.name}).forEach(function(d){d.empty = true})
+                console.log(qnodes)
                 update();
                 d.selected = false;
 
@@ -1226,47 +1218,12 @@ define(['d3'], function(d3) {
 
         });
 
-        
-
-        
-        
         //Implementation of colour change rule
         
         node.on("dblclick", function() {
             console.log("complement rule");
         
         });
-        
-        //end of implementation of complement rule
-        
-        
-        /*brush.call(d3.brush()
-            .extent([[0, 0], [width, height]])
-            .on("start", function() {
-                if (d3.event.sourceEvent.type !== "end") {
-                    node.select(":first-child").attr("style", function(d) {
-                        return nodeStyle(
-                            d.selected = d.previouslySelected = shiftKey &&
-                            d.selected);
-                    });
-                }
-            })
-            .on("brush", function() {
-                if (d3.event.sourceEvent.type !== "end") {
-                    var selection = d3.event.selection;
-                    node.select(":first-child").attr("style", function(d) {
-                        return nodeStyle(d.selected = d.previouslySelected ^
-                            (selection != null
-                            && selection[0][0] <= d.x && d.x < selection[1][0]
-                            && selection[0][1] <= d.y && d.y < selection[1][1]));
-                    });
-                }
-            })
-            .on("end", function() {
-                if (d3.event.selection != null) {
-                    d3.select(this).call(d3.event.target.move, null);
-                }
-            }));*/
         
     }};
 });
