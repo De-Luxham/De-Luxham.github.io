@@ -25,6 +25,21 @@ define(['d3'], function(d3) {
       }).then(() => {
         pyodide.runPython(pythonCode);
       })
+      pythonCodenetx = `
+      def do_work(*args):
+          import networkx
+          print("network imported")
+          
+      
+      
+
+      import micropip
+      micropip.install('networkx').then(do_work)`
+      languagePluginLoader.then(() => {
+        return pyodide.loadPackage(['micropip'])
+      }).then(() => {
+        pyodide.runPython(pythonCodenetx);
+      })
 
     // styling functions
     function nodeColor(t) {
@@ -47,10 +62,112 @@ define(['d3'], function(d3) {
     return {
     showGraph: function(tag, graph, width, height, node_size, connectivity) {
 
+        arq_gen_code = `import random
+ibmq_16_melbourne = {
+            "qubits":{
+            0:{"fideliy":4.905E-4},
+            1:{"fideliy":1.064E-3},
+            2:{"fideliy":5.315E-4},
+            3:{"fideliy":5.906E-4},
+            4:{"fideliy":6.344E-4},
+            5:{"fideliy":2.217E-3},
+            6:{"fideliy":1.510E-3},
+            7:{"fideliy":1.989E-3},
+            8:{"fideliy":9.986E-4},
+            9:{"fideliy":2.149E-3},
+            10:{"fideliy":2.632E-3},
+            11:{"fideliy":9.882E-4},
+            12:{"fideliy":1.399E-3},
+            13:{"fideliy":1.662E-3},
+            14:{"fideliy":7.760E-4}
+            },
+        
+            "connections":[
+            {"source":0, "target":1, "fidelity":1.922E-2},
+            {"source":1, "target":2, "fidelity":1.501E-2},
+            {"source":2, "target":3, "fidelity":2.366E-2},
+            {"source":3, "target":4, "fidelity":1.669E-2},
+            {"source":4, "target":5, "fidelity":2.899E-2},
+            {"source":5, "target":6, "fidelity":5.361E-2},
+            {"source":0, "target":14, "fidelity":3.452E-2},
+            {"source":1, "target":13, "fidelity":4.366E-2},
+            {"source":2, "target":12, "fidelity":7.133E-2},
+            {"source":3, "target":11, "fidelity":4.214E-2},
+            {"source":4, "target":10, "fidelity":3.960E-2},
+            {"source":5, "target":9, "fidelity":3.976E-2},
+            {"source":6, "target":8, "fidelity":6.480E-2},
+            {"source":7, "target":8, "fidelity":5.661E-2},
+            {"source":8, "target":9, "fidelity":5.160E-2},
+            {"source":9, "target":10, "fidelity":4.849E-2},
+            {"source":10, "target":11, "fidelity":3.428E-2},
+            {"source":11, "target":12, "fidelity":2.444E-2},
+            {"source":12, "target":13, "fidelity":2.808E-2},
+            {"source":13, "target":14, "fidelity":3.452E-2}]}
+def arq(qubits=[0,1,2,3,4],device = ibmq_16_melbourne):
+
+    our_arq = {
+        "qubits":{},
+        "connections":{}
+    }
+        
+    for qubit in qubits:
+        our_arq["qubits"][qubit] =device["qubits"][qubit]
+        
+    templist = []
+    for item in device["connections"]:
+        if item["source"] in qubits and item["target"] in qubits:
+            templist.append(item)
+    our_arq["connections"] = templist
+            
+    return our_arq       
+        
+        
+def choose_qubits(n=5,arq=ibmq_16_melbourne):
+            
+    if len(arq["qubits"]) < n:
+        print("There aren't enough qubits on this architecture for this value of n.")
+            
+    else:
+        qubits = []
+        start = random.randint(0,len(arq["qubits"])-1)
+        qubits.append(start)
+        
+        while len(qubits) < n:
+            templist = []
+            for item in arq["connections"]:
+                if item["source"] in qubits and item["target"] not in qubits:
+                    templist.append(item["target"])
+        
+                if item["target"] in qubits and item["source"] not in qubits:
+                    templist.append(item["source"])
+        
+            r = random.randint(0,len(templist)-1)
+            qubits.append(templist[r])
+        
+        return qubits
+arq(choose_qubits(n=3))`
+        
+        var conn_placeholder;
+
+        languagePluginLoader.then(() => {
+            conn_placeholder = pyodide.runPython(arq_gen_code);
+            console.log(conn_placeholder);
+        }).then(() => {
+
+
     
         //Basic connectivity example
-        connectivity = {connections:[{source:0,target:1,t:1,index:0},{source:1,target:2,t:1,index:1}]};
-    
+        connectivity = {connections:[{source:0,target:1,fidelity:1.599E-2,t:1,index:0},{source:1,target:2,fidelity:9.855E-3,t:1,index:1},{source:0,target:2,fidelity:4.855E-3,t:1,index:2}]};
+        //connectivity = conn_placeholder;
+        //calculate min max fidelities for colour coding
+        var max_colour = Math.max.apply(Math, connectivity.connections.map(function(o) { return o.fidelity; }));
+        var min_colour = Math.min.apply(Math, connectivity.connections.map(function(o) { return o.fidelity; }));
+
+        //function def to map fidelitleys to colour scale 100-200 for now
+        function colour_scale(x) {
+            return "rgb(0,0,"+((x-min_colour)/(max_colour-min_colour)*256).toString() +")"
+        }
+        
         //string to store the rules applied
         var rule_string = "[]";
         
@@ -142,16 +259,22 @@ define(['d3'], function(d3) {
            .attr("orient", "auto")
            .append("svg:path")
            .attr("d", "M0,-5L10,0L0,5");
-           
         
+           //x offset variable for drawing curves for connectivity graph
+       var x_off = -100;
        var clink  = svg.append("g")
        .attr("class", "link")
        .selectAll("line")
        .data(connectivity_graph.links)
-       .enter().append("line")
-       .attr("stroke", "black")
+       .enter().append("path")
+       .attr("stroke", function(d) {return colour_scale(d.fidelity)})
        .attr("style", "stroke-width: 1.5px")
-       .attr("marker-end", "url(#end)");
+       //.attr("marker-end", "url(#end)")
+       .attr("d",function(d) {
+           console.log("M" + d.source.x + "," + d.source.y  + ","+"Q" + (d.source.x+d.target.x)/2 + x_off + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y);
+           return "M" + d.source.x + "," + d.source.y + ","+ "Q" + ((parseFloat(d.source.x)+parseFloat(d.target.x)/2) + parseFloat(x_off)).toString() + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y
+       })
+       .attr("fill", "none");
 
        
        var cnode = svg.append("g")
@@ -468,6 +591,28 @@ define(['d3'], function(d3) {
                         console.log(graph);
                     
                      }
+
+                     //implementation of rule that fuses spiders with one edge to qubit nodes that are empty
+                var to_recombine = false;
+                var recomb_node = {};
+                //first check if selected node has one edge and collides with a qnode that is also empty
+                if (selected_node.nhd.length == 1) {
+                    qnodes.forEach(function(d) {if (collided(d,selected_node) && d.empty == true){
+                        to_recombine = true;
+                        recomb_node = d;
+                    }})
+                }
+
+                //now implement recombination
+                if (to_recombine == true) {
+                    rule_applied = true;
+                    selected_node.t = 0;
+                    d.name = selected_node.name;
+                    d.empty = false;
+                    update();
+                    to_recombine = false;
+
+                }
                 
                 }
                 
@@ -484,6 +629,104 @@ define(['d3'], function(d3) {
             }).on("end", function() {console.log("mouseup");
                 graph.nodes.forEach(function(d) {d.selected = false;}); 
                 rule_applied = false;}));
+
+
+                var timer = 0;
+                var delay = 200;
+                var prevent = false;
+                node.on("click", function(d) {
+                    timer = setTimeout(function() {
+                        if (!prevent) {
+                            d.selected = true;
+        
+                            var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
+                            //Implementation of removing ids
+                            if ((selected_node.t == 1 || selected_node.t == 2) && selected_node.nhd.length == 2) {
+                                console.log("remove id");
+                                remove_node(selected_node);
+                                update();
+                                d.selected = false;
+                
+                            }
+                
+                            //Implementation of changing qubit to red spider
+                            if (selected_node.t == 0) {
+                                if (comb_red == true) {
+                                    selected_node.t = 2;
+                                    comb_red = false;
+                                }
+                                else if (comb_red == false) {
+                                    selected_node.t = 1;
+                                    comb_red = true;
+                                }
+                                //change connectivity to empty status (used to verify if spider can reconnect to qubit node)
+                                qnodes.filter(function(d) {return d.name == selected_node.name}).forEach(function(d){d.empty = true})
+                                console.log(qnodes)
+                                update();
+                                d.selected = false;
+                
+                            }
+                        }
+                        prevent = false;
+                      }, delay);
+        
+                }).on("dblclick", function(d) {
+                    console.log("complement rule");
+                    clearTimeout(timer);
+                    prevent = true;
+
+                    d.selected = true;
+        
+                    var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
+        
+                    //chnage colour of node
+                    if (selected_node.t == 1) {
+                        selected_node.t = 2;
+                    }
+                    else if (selected_node.t == 2) {
+                        selected_node.t = 1;
+                    }
+                    //change connecting link types
+                    var connected_links = graph.links.filter(function(l) {return single_link(l,d);});
+                    
+                    connected_links.forEach(function(l) {
+                        if (l.t == 1) {
+                            l.t = 2;
+                        }
+                        else if (l.t == 2) {
+                            l.t = 1;  
+                        }
+                    })
+
+                    update();
+                    console.log(graph)
+                
+                });
+
+                link.on("mousedown", function(d) {
+                    console.log("A link was clicked it was");
+                    console.log(d);
+                    if (ins_red) {
+                        //red id
+                        rule_applied = true;
+                        add_red_id(d);
+                        update();
+                        rule_applied = false;
+                        ins_red = false
+        
+                    } else {
+                        //green id
+                        rule_applied = true;
+                        add_green_id(d);
+                        update();
+                        rule_applied = false;
+                        ins_red = true
+                    }
+                
+        
+        
+        
+                });
             
             //END OF BIG ASS TEST
             
@@ -649,6 +892,11 @@ define(['d3'], function(d3) {
         //does a link connect two nodes
         function is_link(l,n1,n2) {
             return (((l.source.name.localeCompare(n1.name) == 0) && (l.target.name.localeCompare(n2.name) == 0)) || ((l.source.name.localeCompare(n2.name) == 0) && (l.target.name.localeCompare(n1.name) == 0)));
+        }
+        //does a link connect to a node
+
+        function single_link(l,n) {
+            return ((l.source.name.localeCompare(n.name) == 0) || (l.target.name.localeCompare(n.name) == 0))
         }
         
         //Get index of node
@@ -843,6 +1091,119 @@ define(['d3'], function(d3) {
             
             });
         }
+
+        //add red identity 
+        function add_red_id(link) {
+            //get midpoint of the link to place the new node
+            var mid_ptx,mid_pty;
+            mid_ptx = (link.source.x + link.target.x)/2;
+            mid_pty = (link.source.y + link.target.y)/2;
+
+            //increment the total node count
+            node_count++;
+
+            //new node to be added
+            var new_node = {name:node_count.toString(), x:mid_ptx, y:mid_pty, t:2, phase:"", selecetd:false, previouslySelected:false, index:node_count, vy:0, vx:0};
+            
+            //add node to the list of nodes
+            graph.nodes.push(new_node);
+
+            //update the links new target
+            var placeholder_node = link.target;
+
+            link.target = new_node;
+
+            //increment the link counter
+            link_count++;
+            
+            var new_link = {source: placeholder_node, target: new_node, t:1, index: link_count};
+
+            
+
+            //add this link to the links array
+            graph.links.push(new_link);
+
+            //re update neighbour connections
+
+            ntab = {};
+            
+            graph.nodes.forEach(function(d) {
+            console.log("node update");
+            ntab[d.name] = d;
+            d.selected = false;
+            d.previouslySelected = false;
+            d.nhd = [];
+            });
+
+
+            graph.links.forEach(function(d) {
+                s= d.source;
+                t = d.target;
+                s.nhd.push(t);
+                t.nhd.push(s);
+            
+            });
+
+
+
+
+        }
+        //add green identity 
+        function add_green_id(link) {
+            //get midpoint of the link to place the new node
+            var mid_ptx,mid_pty;
+            mid_ptx = (link.source.x + link.target.x)/2;
+            mid_pty = (link.source.y + link.target.y)/2;
+
+            //increment the total node count
+            node_count++;
+
+            //new node to be added
+            var new_node = {name:node_count.toString(), x:mid_ptx, y:mid_pty, t:1, phase:"", selecetd:false, previouslySelected:false, index:node_count, vy:0, vx:0};
+            
+            //add node to the list of nodes
+            graph.nodes.push(new_node);
+
+            //update the links new target
+            var placeholder_node = link.target;
+
+            link.target = new_node;
+
+            //increment the link counter
+            link_count++;
+            
+            var new_link = {source: placeholder_node, target: new_node, t:1, index: link_count};
+
+            
+
+            //add this link to the links array
+            graph.links.push(new_link);
+
+            //re update neighbour connections
+
+            ntab = {};
+            
+            graph.nodes.forEach(function(d) {
+            console.log("node update");
+            ntab[d.name] = d;
+            d.selected = false;
+            d.previouslySelected = false;
+            d.nhd = [];
+            });
+
+
+            graph.links.forEach(function(d) {
+                s= d.source;
+                t = d.target;
+                s.nhd.push(t);
+                t.nhd.push(s);
+            
+            });
+
+
+
+
+        }
         
         //checks if slice region contains circle
         //more generally checks if point is contained in box defined by sline
@@ -950,6 +1311,9 @@ define(['d3'], function(d3) {
         
         // EVENTS FOR DRAGGING AND SELECTION
 
+        //flip variable to determine if qubit node conerts to red or green spider
+        var comb_red = true;
+
         node.on("mousedown", function(d) {
                 /*if (shiftKey) {
                     d3.select(this).select(":first-child").attr("style", nodeStyle(d.selected = !d.selected));
@@ -1036,6 +1400,28 @@ define(['d3'], function(d3) {
                         console.log(graph);
                     
                      }
+
+                //implementation of rule that fuses spiders with one edge to qubit nodes that are empty
+                var to_recombine = false;
+                var recomb_node = {};
+                //first check if selected node has one edge and collides with a qnode that is also empty
+                if (selected_node.nhd.length == 1) {
+                    qnodes.forEach(function(d) {if (collided(d,selected_node) && d.empty == true){
+                        to_recombine = true;
+                        recomb_node = d;
+                    }})
+                }
+
+                //now implement recombination
+                if (to_recombine == true) {
+                    rule_applied = true;
+                    selected_node.t = 0;
+                    d.name = selected_node.name;
+                    d.empty = false;
+                    update();
+                    to_recombine = false;
+
+                }
                 
                 }  
             }).on("end", function() {console.log("mouseup");
@@ -1120,116 +1506,189 @@ define(['d3'], function(d3) {
         //End of slice rule implementatio
 
         //Implementation of inserting identities
+
+        //insertion of identities
+        // will have variable that flips each time and Id is inserted so that green or red can be inserted
+        var ins_red = false; 
+        link.on("mousedown", function(d) {
+            console.log("A link was clicked it was");
+            console.log(d);
+            if (ins_red) {
+                //red id
+                rule_applied = true;
+                add_red_id(d);
+                update();
+                rule_applied = false;
+                ins_red = false
+
+            } else {
+                //green id
+                rule_applied = true;
+                add_green_id(d);
+                update();
+                rule_applied = false;
+                ins_red = true
+            }
+        
+
+
+
+        });
         
         //variable to check which colour to insert
-        var ins_red = false;
-
-        svg.on("dblclick", function(d) {
-            var x = d3.mouse(this)[0];
-            var y = d3.mouse(this)[1];
-
-            var selection_circle = {x: x, y: y, r: radius};
-
-            var to_insid = false;
-
-            //insertion of identities is triggered by a selection circle (where you click defines a node sized circle)
-            //the selection circle then has to intersect a midpoint circle (node sized) at the midpoint of the line to trigger
-
-
-            graph.links.forEach(function(d) {
-                var link_line = {x1: d.source.x,x2: d.target.x, y1: d.source.y, y2: d.target.y};
-
-                var mx = (link_line.x2 + link_line.x1)/2;
-                var my = (link_line.y2 + link_line.y1)/2;
-
-                var link_midcircle = {x: mx, y: my, r: radius};
-                
-                
-
-                if (collided(link_midcircle,selection_circle) && (to_insid == false)) {
-                    
-                    
-                    to_insid = true;
-                    
-                    
-                    
-                }
-            });
-                
-                
-            
-
-        }).on("click", function(d) {
-            var x = d3.mouse(this)[0];
-            var y = d3.mouse(this)[1];
-
-            var selection_circle = {x: x, y: y, r: radius};
-
-            var to_insid = false;
-
-            //insertion of identities is triggered by a selection circle (where you click defines a node sized circle)
-            //the selection circle then has to intersect a midpoint circle (node sized) at the midpoint of the line to trigger
-
-            graph.links.forEach(function(d) {
-                var link_line = {x1: d.source.x,x2: d.target.x, y1: d.source.y, y2: d.target.y};
-
-                var mx = (link_line.x2 + link_line.x1)/2;
-                var my = (link_line.y2 + link_line.y1)/2;
-
-                var link_midcircle = {x: mx, y:my, r: radius};
-
-                if (collided(link_midcircle,selection_circle) && (to_insid == false)) {
-                    
-                    console.log("Insert green Id");
-                    to_insid = true;
-                    
-                    
-                    
-                }
-            });
-                
-                
-            
-
-        });
-
-
         
+
+        // svg.on("dblclick", function(d) {
+        //     var x = d3.mouse(this)[0];
+        //     var y = d3.mouse(this)[1];
+
+        //     var selection_circle = {x: x, y: y, r: radius};
+
+        //     var to_insid = false;
+
+        //     //insertion of identities is triggered by a selection circle (where you click defines a node sized circle)
+        //     //the selection circle then has to intersect a midpoint circle (node sized) at the midpoint of the line to trigger
+
+
+        //     graph.links.forEach(function(d) {
+        //         var link_line = {x1: d.source.x,x2: d.target.x, y1: d.source.y, y2: d.target.y};
+
+        //         var mx = (link_line.x2 + link_line.x1)/2;
+        //         var my = (link_line.y2 + link_line.y1)/2;
+
+        //         var link_midcircle = {x: mx, y: my, r: radius};
+                
+                
+
+        //         if (collided(link_midcircle,selection_circle) && (to_insid == false)) {
+                    
+                    
+        //             to_insid = true;
+                    
+                    
+                    
+        //         }
+        //     });
+                
+                
+            
+
+        // }).on("click", function(d) {
+        //     var x = d3.mouse(this)[0];
+        //     var y = d3.mouse(this)[1];
+
+        //     var selection_circle = {x: x, y: y, r: radius};
+
+        //     var to_insid = false;
+
+        //     //insertion of identities is triggered by a selection circle (where you click defines a node sized circle)
+        //     //the selection circle then has to intersect a midpoint circle (node sized) at the midpoint of the line to trigger
+
+        //     graph.links.forEach(function(d) {
+        //         var link_line = {x1: d.source.x,x2: d.target.x, y1: d.source.y, y2: d.target.y};
+
+        //         var mx = (link_line.x2 + link_line.x1)/2;
+        //         var my = (link_line.y2 + link_line.y1)/2;
+
+        //         var link_midcircle = {x: mx, y:my, r: radius};
+
+        //         if (collided(link_midcircle,selection_circle) && (to_insid == false)) {
+                    
+        //             console.log("Insert green Id");
+        //             to_insid = true;
+                    
+                    
+                    
+        //         }
+        //     });
+                
+                
+            
+
+        //});
+
+
+        //remova of identities
+        //Implementation of colour change rule
+        var timer = 0;
+        var delay = 200;
+        var prevent = false;
 
         node.on("click", function(d) {
+            timer = setTimeout(function() {
+                if (!prevent) {
+                    d.selected = true;
+
+                    var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
+                    //Implementation of removing ids
+                    if ((selected_node.t == 1 || selected_node.t == 2) && selected_node.nhd.length == 2) {
+                        console.log("remove id");
+                        remove_node(selected_node);
+                        update();
+                        d.selected = false;
+        
+                    }
+        
+                    //Implementation of changing qubit to red spider
+                    if (selected_node.t == 0) {
+                        //set the qubit node to the one specified by comb_red
+                        if (comb_red == true) {
+                            selected_node.t = 2;
+                            comb_red = false;
+                        }
+                        else if (comb_red == false) {
+                            selected_node.t = 1;
+                            comb_red = true;
+                        }
+                        
+                        //change connectivity to empty status (used to verify if spider can reconnect to qubit node)
+                        qnodes.filter(function(d) {return d.name == selected_node.name}).forEach(function(d){d.empty = true})
+                        console.log(qnodes)
+                        update();
+                        d.selected = false;
+        
+                    }
+                }
+                prevent = false;
+              }, delay);
+
+        }).on("dblclick", function(d) {
+            console.log("complement rule");
+            clearTimeout(timer);
+            prevent = true;
 
             d.selected = true;
-
+        
             var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
-            //Implementation of removing ids
-            if ((selected_node.t == 1 || selected_node.t == 2) && selected_node.nhd.length == 2) {
-                console.log("remove id");
-                remove_node(selected_node);
-                update();
-                d.selected = false;
-
-            }
-
-            //Implementation of changing qubit to red spider
-            if (selected_node.t == 0) {
-                //set the qubit node to a red spider
+        
+            //chnage colour of node
+            if (selected_node.t == 1) {
                 selected_node.t = 2;
-                //change connectivity to empty status (used to verify if spider can reconnect to qubit node)
-                qnodes.filter(function(d) {return d.name == selected_node.name}).forEach(function(d){d.empty = true})
-                console.log(qnodes)
-                update();
-                d.selected = false;
-
             }
-
+            else if (selected_node.t == 2) {
+                selected_node.t = 1;
+            }
+            //change connecting link types
+            var connected_links = graph.links.filter(function(l) {return single_link(l,d);});
+                    
+            connected_links.forEach(function(l) {
+            if (l.t == 1) {
+                l.t = 2;
+            }
+            else if (l.t == 2) {
+                l.t = 1;  
+            }
+            })
+            update();
+            
+        
         });
 
-        //Implementation of colour change rule
         
-        node.on("dblclick", function() {
-            console.log("complement rule");
         
-        });
         
-    }};
+        
+    })}};
 });
+
+

@@ -103,6 +103,54 @@ def QEC3(pyzx=True):
 		return Three_qec
 
 
+def QEC7(pyzx=True):
+	
+	circ = QuantumCircuit(10)
+	
+	circ.cx(0,7)
+	circ.cx(2,7)
+	circ.cx(4,7)
+	circ.cx(6,7)
+	
+	circ.cx(1,8)
+	circ.cx(2,8)
+	circ.cx(5,8)
+	circ.cx(6,8)
+	
+	circ.cx(3,9)
+	circ.cx(4,9)
+	circ.cx(5,9)
+	circ.cx(6,9)
+	
+	if pyzx is True:
+		return zx.sqasm(Three_qec.qasm(),simplify=False)
+	else:
+		return Three_qec
+
+
+def QEC3_1Garanteed(pyzx=True):
+	circ = QuantumCircuit(3)
+	circ.cx(0,1)
+	circ.cw(0,2)
+	"""Error"""
+	ran = random.randint(0,3)
+	circ.x(ran)
+	circ.cx(0,1)
+	circ.cw(0,2)
+	circ.h(0)
+	circ = ccz(circ,1,2,0)
+	circ.h(0)
+	
+	if pyzx is True:
+		return zx.sqasm(circ.qasm(),simplify=False)
+	else:
+		return circ
+
+
+
+	
+	
+
 """Quantum Fourier Transform"""
 
 def QFT2(pyzx=True):
@@ -119,7 +167,7 @@ def QFT2(pyzx=True):
 	if pyzx is True:
 		return zx.sqasm(QFT_2.qasm(),simplify=False)
 	else:
-		QFT_2.swap(0,1)
+		#QFT_2.swap(0,1)
 		return QFT_2
 
 
@@ -141,7 +189,7 @@ def QFT3(pyzx=True):
 	if pyzx is True:
 		return zx.sqasm(QFT_3.qasm(),simplify=False)
 	else:
-		QFT_3.swap(0,2)
+		#QFT_3.swap(0,2)
 		return QFT_3
 
 
@@ -168,8 +216,8 @@ def QFT4(pyzx=True):
 	if pyzx is True:
 		return zx.sqasm(QFT_4.qasm(),simplify=False)
 	else:
-		QFT_4.swap(0,3)
-		QFT_4.swap(1,2)
+		#QFT_4.swap(0,3)
+		#QFT_4.swap(1,2)
 		return QFT_4
 
 
@@ -248,8 +296,8 @@ def QFT5(pyzx=True):
 	if pyzx is True:
 		return zx.sqasm(QFT_5.qasm(),simplify=False)
 	else:
-		QFT_5.swap(0,4)
-		QFT_5.swap(1,3)
+		#QFT_5.swap(0,4)
+		#QFT_5.swap(1,3)
 		return QFT_5
 
 
@@ -271,16 +319,6 @@ def QFT_N(n,pyzx=True):
 		QFT_pyzx = zx.sqasm(QFT.qasm(),simplify=False)
 		return QFT_pyzx
 	else:
-		l=len(lis)
-		print(l)
-		if l % 2 == 0:
-			m = int(l/2)
-			for i in range(0,m):
-				QFT.swap(lis[i],lis[-(i+1)])
-		else:
-			m = int((l-1)/2)
-			for i in range(0,m):
-				QFT.swap(lis[i],lis[-(i+1)])
 		return QFT
 
 
