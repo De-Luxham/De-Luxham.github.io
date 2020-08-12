@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+    <meta charset="utf-8">
+    <style> body { font-family: sans-serif; }
+.div1 {
+  margin: auto;
+  width: 500px;
+  height: 500px;
+}
+.div2 {
+  margin: auto;
+  width: 500px;
+  height: 100px;
+  
+}
+.div3 {
+  margin: auto;
+  text-align: center;
+  width: 50%;
+  border: 3px solid red;
+  font-size: 15px;
+}
+.center {
+  margin: auto;
+  text-align: center;
+  width: 50%;
+  border: 3px solid green;
+  font-size: 40px;
+}
+    </style>
+    <body>
+      <div class="center">
+        <p>Zedex: Prepare to cry edition</p>
+      </div>
+      <div class="div3" id="score"></div>
+    <div class="div2" id="circuit"></div>
+    <div  class="div1" style="overflow:auto"  id="graph-output-1" ></div>
+    
+    <script type="text/javascript" src="https://unpkg.com/quantum-circuit"></script>
+    <script src="require.js"></script>
+    <!--<script>window.languagePluginUrl = "https://de-luxham.github.io/web/";</script>-->
+    
+    <script type="text/javascript" src="https://pyodide-cdn2.iodide.io/v0.15.0/full/pyodide.js"></script>
+    
+    <script type="text/javascript">
+    
+     require.config({
+            paths: {
+                    "d3": "d3.v4.min",
+                    "pyzx": "pyzx",
+                    "pyodid": "pyodide" //This is a CDN and could be unstable, long term should be changed to local files pyodide.js
+                    }
+            });require(['pyzx'], function(pyzx) {
+            pyzx.showGraph('#graph-output-1',
+            JSON.parse('{"nodes": [{"name": "0", "x": 50, "y": 100, "t": 0, "phase": ""}, {"name": "1", "x": 50, "y": 150, "t": 0, "phase": ""}, {"name": "2", "x": 50, "y": 200, "t": 0, "phase": ""}, {"name": "3", "x": 50, "y": 250, "t": 0, "phase": ""}, {"name": "4", "x": 50, "y": 300, "t": 0, "phase": ""}, {"name": "5", "x": 100, "y": 100, "t": 1, "phase": ""}, {"name": "6", "x": 150, "y": 150, "t": 2, "phase": ""}, {"name": "7", "x": 150, "y": 100, "t": 1, "phase": ""}, {"name": "8", "x": 200, "y": 200, "t": 2, "phase": ""}, {"name": "9", "x": 200, "y": 100, "t": 1, "phase": ""}, {"name": "10", "x": 250, "y": 250, "t": 2, "phase": ""}, {"name": "11", "x": 250, "y": 100, "t": 1, "phase": ""}, {"name": "12", "x": 300, "y": 300, "t": 2, "phase": ""}, {"name": "13", "x": 300, "y": 100, "t": 1, "phase": ""}, {"name": "14", "x": 350, "y": 100, "t": 0, "phase": ""}, {"name": "15", "x": 350, "y": 150, "t": 0, "phase": ""}, {"name": "16", "x": 350, "y": 200, "t": 0, "phase": ""}, {"name": "17", "x": 350, "y": 250, "t": 0, "phase": ""}, {"name": "18", "x": 350, "y": 300, "t": 0, "phase": ""}], "links": [{"source": "0", "target": "5", "t": 2}, {"source": "1", "target": "6", "t": 1}, {"source": "2", "target": "8", "t": 1}, {"source": "3", "target": "10", "t": 1}, {"source": "4", "target": "12", "t": 1}, {"source": "5", "target": "7", "t": 1}, {"source": "6", "target": "7", "t": 1}, {"source": "6", "target": "15", "t": 1}, {"source": "7", "target": "9", "t": 1}, {"source": "8", "target": "9", "t": 1}, {"source": "8", "target": "16", "t": 1}, {"source": "9", "target": "11", "t": 1}, {"source": "10", "target": "11", "t": 1}, {"source": "10", "target": "17", "t": 1}, {"source": "11", "target": "13", "t": 1}, {"source": "12", "target": "13", "t": 1}, {"source": "12", "target": "18", "t": 1}, {"source": "13", "target": "14", "t": 1}]}'), 400, 400, 10.0);
+        });
+        </script>

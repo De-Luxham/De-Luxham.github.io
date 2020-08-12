@@ -10,6 +10,8 @@ define(['d3'], function(d3) {
 
     pythonCode = `
       def do_work(*args):
+          import networkx as nx
+          print("network imported")
           import pyzx as zx
           print("pyzx imported")
           graph = zx.generate.cliffords(3, 3)
@@ -19,27 +21,13 @@ define(['d3'], function(d3) {
       
 
       import micropip
-      micropip.install('pyzx').then(do_work)`
+      micropip.install(['networkx','pyzx']).then(do_work)`
       languagePluginLoader.then(() => {
         return pyodide.loadPackage(['micropip'])
       }).then(() => {
         pyodide.runPython(pythonCode);
       })
-      pythonCodenetx = `
-      def do_work(*args):
-          import networkx
-          print("network imported")
-          
-      
-      
-
-      import micropip
-      micropip.install('networkx').then(do_work)`
-      languagePluginLoader.then(() => {
-        return pyodide.loadPackage(['micropip'])
-      }).then(() => {
-        pyodide.runPython(pythonCodenetx);
-      })
+     
 
     // styling functions
     function nodeColor(t) {
@@ -149,15 +137,15 @@ arq(choose_qubits(n=3))`
         
         var conn_placeholder;
 
-        languagePluginLoader.then(() => {
-            conn_placeholder = pyodide.runPython(arq_gen_code);
-            console.log(conn_placeholder);
-        }).then(() => {
+        // languagePluginLoader.then(() => {
+        //     conn_placeholder = pyodide.runPython(arq_gen_code);
+        //     console.log(conn_placeholder);
+        // })
 
 
     
         //Basic connectivity example
-        connectivity = {connections:[{source:0,target:1,fidelity:1.599E-2,t:1,index:0},{source:1,target:2,fidelity:9.855E-3,t:1,index:1},{source:0,target:2,fidelity:4.855E-3,t:1,index:2}]};
+        connectivity = {connections:[{source:0,target:1,fidelity:1.599E-2,t:1,index:0},{source:1,target:2,fidelity:9.855E-3,t:1,index:1},{source:2,target:3,fidelity:2.855E-3,t:1,index:2},{source:3,target:4,fidelity:4.855E-3,t:1,index:2}]};
         //connectivity = conn_placeholder;
         //calculate min max fidelities for colour coding
         var max_colour = Math.max.apply(Math, connectivity.connections.map(function(o) { return o.fidelity; }));
@@ -203,9 +191,9 @@ arq(choose_qubits(n=3))`
         //New var added for force simulation
         var simulation = d3.forceSimulation()
         .force("link", d3.forceLink()
-        .id(function(d) { return d.id; }).strength(0.03))
-        .force("charge", d3.forceManyBody().strength(-10))
-        .force("center", d3.forceCenter(width / 2, height / 2))
+        .id(function(d) { return d.id; }).strength(0.01))
+        //.force("charge", d3.forceManyBody().strength(-20))
+        //.force("center", d3.forceCenter(width / 2, height / 2))
     
 
         
@@ -218,8 +206,8 @@ arq(choose_qubits(n=3))`
             //.each(function() { this.focus(); })
             .append("svg")
             .attr("style", "max-width: none; max-height: none")
-            .attr("width", width + 100)
-            .attr("height", height + 500);
+            .attr("width", width+50)
+            .attr("height", height +50);
             //added offset to dimensions of canvas
 
 
@@ -519,7 +507,7 @@ arq(choose_qubits(n=3))`
                     
                     console.log(graph.nodes.filter(function(d) {return d.selected;})[0]);
                     
-                    simulation.alphaTarget(0.1).restart();
+                    simulation.alphaTarget(0.05).restart();
                     
                 //}
             })
@@ -531,7 +519,7 @@ arq(choose_qubits(n=3))`
                 //     .attr("cy", function(d) { return d.y += dy; });
             
                 //added this thing for the force stuf
-                simulation.alphaTarget(0.1).restart();
+                simulation.alphaTarget(0.05).restart();
                 
                 console.log(rule_applied);
                 
@@ -606,26 +594,14 @@ arq(choose_qubits(n=3))`
                 //now implement recombination
                 if (to_recombine == true) {
                     rule_applied = true;
-                    selected_node.t = 0;
-                    d.name = selected_node.name;
-                    d.empty = false;
+                    recomb(selected_node,recomb_node);
                     update();
                     to_recombine = false;
 
                 }
                 
                 }
-                
-                
-            
-                
-                 
-                    
-            
-                
-                
-                 
-                
+                   
             }).on("end", function() {console.log("mouseup");
                 graph.nodes.forEach(function(d) {d.selected = false;}); 
                 rule_applied = false;}));
@@ -649,27 +625,18 @@ arq(choose_qubits(n=3))`
                 
                             }
                 
-                            //Implementation of changing qubit to red spider
                             if (selected_node.t == 0) {
-                                if (comb_red == true) {
-                                    selected_node.t = 2;
-                                    comb_red = false;
-                                }
-                                else if (comb_red == false) {
-                                    selected_node.t = 1;
-                                    comb_red = true;
-                                }
-                                //change connectivity to empty status (used to verify if spider can reconnect to qubit node)
-                                qnodes.filter(function(d) {return d.name == selected_node.name}).forEach(function(d){d.empty = true})
-                                console.log(qnodes)
+        
+                                qubit_to_spider(selected_node);
                                 update();
                                 d.selected = false;
+                            }
                 
                             }
-                        }
+                        
                         prevent = false;
                       }, delay);
-        
+                    
                 }).on("dblclick", function(d) {
                     console.log("complement rule");
                     clearTimeout(timer);
@@ -679,24 +646,7 @@ arq(choose_qubits(n=3))`
         
                     var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
         
-                    //chnage colour of node
-                    if (selected_node.t == 1) {
-                        selected_node.t = 2;
-                    }
-                    else if (selected_node.t == 2) {
-                        selected_node.t = 1;
-                    }
-                    //change connecting link types
-                    var connected_links = graph.links.filter(function(l) {return single_link(l,d);});
-                    
-                    connected_links.forEach(function(l) {
-                        if (l.t == 1) {
-                            l.t = 2;
-                        }
-                        else if (l.t == 2) {
-                            l.t = 1;  
-                        }
-                    })
+                    colour_change(selected_node);
 
                     update();
                     console.log(graph)
@@ -733,94 +683,192 @@ arq(choose_qubits(n=3))`
             console.log(rule_string);
             
             pythonCode2 = `
-            import sys
-            import numpy as np
-            import random, math, os
-            import pyzx as zx
-            from fractions import Fraction
-            import webbrowser
-            import time
-            import csv
+import sys
+import numpy as np
+import random, math, os
+import pyzx as zx
+from fractions import Fraction
+import webbrowser
+import time
+import csv
+import networkx as nx
+
+
             
             
             
-            #this takes a list as arguement, shape depends on the rule being implemented, but the first element 
-            #of each row should be the rule to be implemented.
+#this takes a list as arguement, shape depends on the rule being implemented, but the first element 
+#of each row should be the rule to be implemented.
+def connections_to_nx_graph(connections):
+    arch_graph = nx.Graph()
+    for connect in connections:
+        print(connect)
+        arch_graph.add_edge(int(connect['source']),int(connect['target']),weight=float(connect['fidelity']))
+    return arch_graph
+
+
+#Function which generates a score given a circuit and an architecture
+def return_score(graph_pyzx, architecture):
+
+    circ_from_test=zx.extract.extract_circuit(graph_pyzx,optimize_czs=False, optimize_cnots=0)           
+    circuit_qasm_string=circ_from_test.to_qasm()
+
+    two_qubit_gates=[]
+    nx_arch=connections_to_nx_graph(architecture)
+    connections=architecture 
+   
+    print(circuit_qasm_string)
+    
+    qasm_list=circuit_qasm_string.split("\\n")
+    #Loop to count the two qubit gates and store the qubits they act on
+    for element in qasm_list:
+        if len(element)>0:
+            if element[0] =='c':
             
-            def Implement_Rules(data):
+                two_qubit_gate=[int(element[5]),int(element[11]),False]
+                two_qubit_gates.append(two_qubit_gate)
+                
+
+    #This set of loops determines if each two qubit gate within the QASM string is possible on the 
+    # given architecture
+    for i in range(len(two_qubit_gates)):
+        for d in connections:
+    
+            temp_TQG=two_qubit_gates[i]
+            if d['source']==temp_TQG[0]:
+        
+                if d['target']==temp_TQG[1]:
+                    temp_TQG[2]=True
+                    continue
             
-                #temporarily hardcoding graph object in
-                qubit_amount = 3
-                depth = 4
-                random.seed(1337)
-                graph = zx.generate.cliffords(qubit_amount, depth)
+            if d['source']==temp_TQG[1]:
+        
+                if d['target']==temp_TQG[0]:
+                    temp_TQG[2]=True
+                    continue
+                
+   
+    #two_qubit_gates=[[0, 1, True], [0, 1, True],[7, 5, False], [3, 13, False]]
+    
+    #loop through each of the two qubit gates.
+    #If gate possible on architecture, assign a score based on the fidelity of the connection
+    # If not in the architecture, perform Dijsktrika's algorithm to find the shortest path between two points
+    score=100
+    for j in range(len(two_qubit_gates)):
+        if two_qubit_gates[j][2]==True:
+            s=two_qubit_gates[j][0]
+            t=two_qubit_gates[j][1]
+            for con in connections:
+                if con['source']==s and con['target']==t:
+                    score=score-1*(con['fidelity'])
+        
+        #now if node not on architecture, perform Dijstikas alg
+        #find mininmal weighted path between the two nodes
+        #multiply by 3 as 3 CNOTS per swap, and then mult by 2 to traverse the path then back again
+        else:
+            path=nx.dijkstra_path(nx_arch, two_qubit_gates[j][0], two_qubit_gates[j][1], weight='weight')
+            for i in range(len(path)-2):
+                s=path[i]
+                t=path[i+1]
+                for con in connections:
+                    if con['source']==s and con['target']==t:
+                        score=score-6*(con['fidelity'])
             
-                for i in range(len(data)):
-                        print(type(data[i][0]),data[i][0])
-                        if data[i][0]=="s":                     #If rule to perform is spider
-                            zx.rules.apply_rule(graph, zx.rules.spider, [[int(data[i][1]),int(data[i][2])]], check_isolated_vertices=True)
-                            #display(zx.draw(graph,labels=True))
-                            print(graph)
+    return score,circuit_qasm_string
+            
+def Implement_Rules(data):
+            
+    #temporarily hardcoding graph object in
+    qasm = """OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[5];
+h q[0];
+cx q[0],q[1];
+cx q[0],q[2];
+cx q[0],q[3];
+cx q[0],q[4];"""
+
+    graph = zx.Circuit.from_qasm(qasm).to_graph()
+            
+    for i in range(len(data)):
+        print(type(data[i][0]),data[i][0])
+        if data[i][0]=="s":                     #If rule to perform is spider
+            zx.rules.apply_rule(graph, zx.rules.spider, [[int(data[i][1]),int(data[i][2])]], check_isolated_vertices=True)
+            #display(zx.draw(graph,labels=True))
+            print(graph)
                             
-                        if data[i][0]=="u":  
-                            neighbours=[]                   #If rule to perform is unspider
-                            data[i][1]=int(data[i][1])          #target node
-                            data[i][2]=Fraction(data[i][2])          #targets phase 
-                            data[i][3]=int(data[i][3])          # Qubit/row index - where to position on graph
-                            data[i][4]=int(data[i][4])          #Column index (row in pyzx) where to position on graph
+        if data[i][0]=="u":  
+            neighbours=data[i][2]                   #If rule to perform is unspider
+            neighbours =[int(x) for x in neighbours]
+            data[i][1]=int(data[i][1])          #target node
+            data[i][3]=Fraction(data[i][3])          #targets phase 
+            #data[i][3]=int(data[i][3])          # Qubit/row index - where to position on graph
+            #data[i][4]=int(data[i][4])          #Column index (row in pyzx) where to position on graph
                             
-                            for j in range(5, len(data[i])):       #Neeed to loop over every nearest neighbour to cast it to integer
+            #for j in range(5, len(data[i])):       #Neeed to loop over every nearest neighbour to cast it to integer
                                                                     #start at the nearest neighbour entries
-                                neighbours.append(int(data[i][j])) 
-                            zx.rules.unspider(graph, [data[i][1], tuple(neighbours),data[i][2] ], data[i][4] , data[i][3] )
-                            #display(zx.draw(graph,labels=True))
-                            print(graph)
+                #neighbours.append(int(data[i][j])) 
+            zx.rules.unspider(graph, [data[i][1], tuple(neighbours),data[i][3] ])
+            #display(zx.draw(graph,labels=True))
+            print(graph)
             
             
                 #The rules called here were written by me, and require lots more testing and rewriting
                 #=============================================================================
-                        if data[i][0]=="i":                     
-                            neighbours=[]
-                            neighbours.append(int(data[i][1]))
-                            neighbours.append(int(data[i][2]))  
-                            zx.rules.add_identity(graph,tuple(neighbours),data[i][3])
-                            #display(zx.draw(graph,labels=True))
-                            print(graph)
+        if data[i][0]=="i":                     
+            id1 = data[i][1]
+            id2 = data[i][2]
+            e = graph.edge(id1,id2)
+            graph.remove_edge(e)
+            j = graph.add_vertex(ty=data[i][3])
+            graph.add_edge((id1,j),1)
+            graph.add_edge((j,id2),1)
+            print(graph)
             
             
-                        if data[i][0]=="ri":
-                            neighbours=[]
-                            neighbours.append(int(data[i][2]))
-                            neighbours.append(int(data[i][3]))
-                            zx.rules.remove_identity(graph,int(data[i][1]),tuple(neighbours))
-                            #display(zx.draw(graph,labels=True))
-                            print(graph)
+        if data[i][0]=="ri":
+            j = int(data[i][1])
+            graph.add_edge((list(graph.neighbors(j))[0],list(graph.neighbors(j))[1]),1)
+            graph.remove_vertex(j)
+            print(graph)
+        
+        #rules for changing qubit nodes to red spiders and vice versa
+
+        if data[i][0] == "qr":
+            graph.set_type(data[i][1],2)
+        
+        if data[i][0] == "rq":
+            graph.set_type(data[i][1],0)
+
+        if data[i][0] == "cc":
+
+            def selector(v,s):
+                return v == s
+
+            s = data[i][1]
+
+            def f(v):
+                return selector(v,s)
+            
+            zx.to_rg(graph,select=f)
             
             
                 
             
-                #G_OUT=zx.draw(graph,labels=True)
-                #G_OUT.savefig("data/graph.png", format="png")
-                html2 ="""<h2>New pyzx graph</h2>
+               
+    html2 ="""<h2>New pyzx graph</h2>
                 
                 <img src="./data/graph.png" alt="New Circuit" width="500" height="333">
                 </body>
                 </html>
                 """
                 
-                #p = open(r"circuits.html", "w")
-                #p.write(html2)
-                #p.close()
-                #url = os.getcwd()+'/' + 'circuits.html'
-                #webbrowser.open(url,2)
-                #==================
-                print(graph)
-                circ_dat =zx.extract.extract_circuit(graph,optimize_czs=False, optimize_cnots=0).to_basic_gates()
-                stats = circ_dat.stats()
-                qasm = circ_dat.to_qasm()
-                output = {'qasm':qasm,'stats':stats}
-                return output
-            Implement_Rules(`.concat(rule_string,')')
+                
+    print(graph) 
+    score,qasm = return_score(graph,[{'source':0,'target':1,'fidelity':1.599E-2,'t':1,'index':0},{'source':1,'target':2,'fidelity':9.855E-3,'t':1,'index':1},{'source':2,'target':3,'fidelity':2.855E-3,'t':1,'index':2},{'source':3,'target':4,'fidelity':4.855E-3,'t':1,'index':2}])
+    output = {'qasm':qasm,'score':score}
+    return output
+Implement_Rules(`.concat(rule_string,')')
             
             
                 // languagePluginLoader.then(function ()  {
@@ -834,26 +882,26 @@ arq(choose_qubits(n=3))`
 
                 // }); 
                 pyodide.loadPackage('matplotlib').then(() => {
-                    var qasm,stats,x
-                    x = pyodide.runPython(pythonCode2)
+                    var qasm,score,x;
+                    x = pyodide.runPython(pythonCode2);
                     qasm = x.qasm;
-                    stats = x.stats;
+                    score = x.score;
+                    console.log(score);
                     console.log(qasm);
-                    console.log(stats);
-                    var circuit = new QuantumCircuit();
-                    circuit.importQASM(qasm, function(errors) {
-                        console.log(errors);
-                    });
+                    // var circuit = new QuantumCircuit();
+                    // circuit.importQASM(qasm, function(errors) {
+                    //     console.log(errors);
+                    // });
                     // Assuming we have <div id="drawing"></div> somewhere in HTML
                     var circ_container = document.getElementById("circuit");
                     var score_container = document.getElementById("score");
                     // SVG is returned as string
-                    var svg = circuit.exportSVG(true);
+                    //var svg = circuit.exportSVG(true);
 
                     // add SVG into container
-                    circ_container.innerHTML = svg;
+                    //circ_container.innerHTML = svg;
 
-                    score_container.innerHTML = stats;
+                    score_container.innerHTML = "Current Score:" + score;
                   });
                 // languagePluginLoader.then(() => {
                 //     pyodide.runPython(pythonCode2);
@@ -862,6 +910,8 @@ arq(choose_qubits(n=3))`
             
         
         }
+
+        //svg.attr("opacity",0)
         
         //returns true if nodes have collided
         function collided(node1,node2) {
@@ -912,6 +962,8 @@ arq(choose_qubits(n=3))`
              return i;
         }
 
+        //rules that use the rule string below here
+
         //remove ids rule
         function remove_node(selected_node) {
 
@@ -958,6 +1010,18 @@ arq(choose_qubits(n=3))`
                 t.nhd.push(s);
         });
 
+                //code to updat the applied rules string with the fusion rule applied
+            var ri_string = "";
+            //case if this is the first rule applied 
+            if (rule_string.length == 2){
+            
+                rule_string = "[[".concat("\"ri\"",",",selected_node.name,"]]");
+            
+            } else {
+                rule_string = rule_string.slice(0,-1);
+                ri_string = ",[".concat("\"ri\"",",",selected_node.name,"]]");
+                rule_string = rule_string.concat(ri_string);
+            }
 
             
         }
@@ -1044,20 +1108,31 @@ arq(choose_qubits(n=3))`
 
 
             //change the connections of existing links
+            //and add new node neighbour names to a list
+            var new_node_neighbours = [];
 
             graph.links.forEach(function(d) {
                 if ((d.target.name.localeCompare(sliced_node.name) == 0) && (d.source.y > m*(d.source.x - s_line.x1) +s_line.y1)) {
                     d.target = new_node;
+                    new_node_neighbours.push(d.source.name);
                 
                 }
                 if ((d.source.name.localeCompare(sliced_node.name) == 0) && (d.target.y > m*(d.target.x - s_line.x1) +s_line.y1)) {
                     d.source = new_node;
+                    new_node_neighbours.push(d.target.name);
                 
                 }
                 
              console.log("in links for each loop")
             });
 
+            //construct new neighbour rule string
+            var new_neigh_string;
+            var x;
+            x = new_node_neighbours.toString();
+            
+            new_neigh_string = "["+x+"]"
+            console.log(new_neigh_string);
             //create new link connecting the sliced node and the new one
 
             //increment the link counter
@@ -1090,6 +1165,106 @@ arq(choose_qubits(n=3))`
                 t.nhd.push(s);
             
             });
+
+            //code to updat the applied rules string with the split rule applied
+        var split_string = "";
+        //case if this is the first rule applied 
+        if (rule_string.length == 2){
+            
+            rule_string = "[[".concat("\"u\"",",",sliced_node.name,",",new_neigh_string,",","0","]]");
+            
+        } else {
+            rule_string = rule_string.slice(0,-1);
+            split_string = ",[".concat("\"u\"",",",sliced_node.name,",",new_neigh_string,",","0","]]");
+            rule_string = rule_string.concat(split_string);
+        }
+        }
+
+        //change qubit to spider
+        function qubit_to_spider(selected_node) {
+            //Implementation of changing qubit to red spider
+            
+                //set the qubit node to the one specified by comb_red
+                if (comb_red == true) {
+                    selected_node.t = 2;
+                    comb_red = false;
+                }
+                else if (comb_red == false) {
+                    selected_node.t = 1;
+                    comb_red = true;
+                }
+                
+                //change connectivity to empty status (used to verify if spider can reconnect to qubit node)
+                qnodes.filter(function(d) {return d.name == selected_node.name}).forEach(function(d){d.empty = true})
+            
+            //code to updat the applied rules string with the fusion rule applied
+        var qr_string = "";
+        //case if this is the first rule applied 
+        if (rule_string.length == 2){
+            
+            rule_string = "[[".concat("\"qr\"",",",selected_node.name,"]]");
+            
+        } else {
+            rule_string = rule_string.slice(0,-1);
+            qr_string = ",[".concat("\"qr\"",",",selected_node.name,"]]");
+            rule_string = rule_string.concat(qr_string);
+        }
+    }
+    
+
+        //recombine spider to qubit node
+        function recomb(selected_node,recomb_node) {
+            selected_node.t = 0;
+            recomb_node.name = selected_node.name;
+            recomb_node.empty = false;
+            selected_node.x = recomb_node.x;
+            selected_node.y = recomb_node.y
+            //code to updat the applied rules string with the fusion rule applied
+            var rq_string = "";
+            //case if this is the first rule applied 
+            if (rule_string.length == 2){
+            
+                rule_string = "[[".concat("\"rq\"",",",selected_node.name,"]]");
+            
+            } else {
+            rule_string = rule_string.slice(0,-1);
+            rq_string = ",[".concat("\"rq\"",",",selected_node.name,"]]");
+            rule_string = rule_string.concat(rq_string);
+            }
+        }
+
+        //colour change rule
+        function colour_change(selected_node) {
+            //chnage colour of node
+            if (selected_node.t == 1) {
+                selected_node.t = 2;
+            }
+            else if (selected_node.t == 2) {
+                selected_node.t = 1;
+            }
+            //change connecting link types
+            var connected_links = graph.links.filter(function(l) {return single_link(l,selected_node);});
+                    
+            connected_links.forEach(function(l) {
+            if (l.t == 1) {
+                l.t = 2;
+            }
+            else if (l.t == 2) {
+                l.t = 1;  
+            }
+            })
+            //code to updat the applied rules string with the fusion rule applied
+            var cc_string = "";
+            //case if this is the first rule applied 
+            if (rule_string.length == 2){
+            
+                rule_string = "[[".concat("\"cc\"",",",selected_node.name,"]]");
+            
+            } else {
+                rule_string = rule_string.slice(0,-1);
+                cc_string = ",[".concat("\"cc\"",",",selected_node.name,"]]");
+                rule_string = rule_string.concat(cc_string);
+            }
         }
 
         //add red identity 
@@ -1098,6 +1273,10 @@ arq(choose_qubits(n=3))`
             var mid_ptx,mid_pty;
             mid_ptx = (link.source.x + link.target.x)/2;
             mid_pty = (link.source.y + link.target.y)/2;
+
+            //store source and target name for link in new variables to go into the rule string
+            var source_name = link.source.name;
+            var target_name = link.target.name;
 
             //increment the total node count
             node_count++;
@@ -1144,6 +1323,19 @@ arq(choose_qubits(n=3))`
             
             });
 
+            //code to updat the applied rules string with the fusion rule applied
+            var i_string = "";
+            //case if this is the first rule applied 
+            if (rule_string.length == 2){
+            
+                rule_string = "[[".concat("\"i\"",",",source_name,",",target_name,",","2","]]");
+            
+            } else {
+                rule_string = rule_string.slice(0,-1);
+                i_string = ",[".concat("\"i\"",",",source_name,",",target_name,",","2","]]");
+                rule_string = rule_string.concat(i_string);
+            }
+
 
 
 
@@ -1154,6 +1346,10 @@ arq(choose_qubits(n=3))`
             var mid_ptx,mid_pty;
             mid_ptx = (link.source.x + link.target.x)/2;
             mid_pty = (link.source.y + link.target.y)/2;
+
+            //store source and target name for link in new variables to go into the rule string
+            var source_name = link.source.name;
+            var target_name = link.target.name;
 
             //increment the total node count
             node_count++;
@@ -1200,10 +1396,25 @@ arq(choose_qubits(n=3))`
             
             });
 
+            //code to updat the applied rules string with the fusion rule applied
+            var i_string = "";
+            //case if this is the first rule applied 
+            if (rule_string.length == 2){
+            
+                rule_string = "[[".concat("\"i\"",",",source_name,",",target_name,",","1","]]");
+            
+            } else {
+                rule_string = rule_string.slice(0,-1);
+                i_string = ",[".concat("\"i\"",",",source_name,",",target_name,",","1","]]");
+                rule_string = rule_string.concat(i_string);
+            }
+
 
 
 
         }
+
+        //end of rule string rules
         
         //checks if slice region contains circle
         //more generally checks if point is contained in box defined by sline
@@ -1327,7 +1538,7 @@ arq(choose_qubits(n=3))`
                     
                     console.log(graph.nodes.filter(function(d) {return d.selected;})[0]);
                     
-                    simulation.alphaTarget(0).restart();
+                    simulation.alphaTarget(0.05).restart();
                     
                 //}
             })
@@ -1340,7 +1551,7 @@ arq(choose_qubits(n=3))`
             
                 //added this thing for the force stuff
                 
-                simulation.alphaTarget(0).restart();
+                simulation.alphaTarget(0.05).restart();
                 
                 
                 
@@ -1415,9 +1626,7 @@ arq(choose_qubits(n=3))`
                 //now implement recombination
                 if (to_recombine == true) {
                     rule_applied = true;
-                    selected_node.t = 0;
-                    d.name = selected_node.name;
-                    d.empty = false;
+                    recomb(selected_node,recomb_node);
                     update();
                     to_recombine = false;
 
@@ -1535,79 +1744,7 @@ arq(choose_qubits(n=3))`
 
         });
         
-        //variable to check which colour to insert
-        
-
-        // svg.on("dblclick", function(d) {
-        //     var x = d3.mouse(this)[0];
-        //     var y = d3.mouse(this)[1];
-
-        //     var selection_circle = {x: x, y: y, r: radius};
-
-        //     var to_insid = false;
-
-        //     //insertion of identities is triggered by a selection circle (where you click defines a node sized circle)
-        //     //the selection circle then has to intersect a midpoint circle (node sized) at the midpoint of the line to trigger
-
-
-        //     graph.links.forEach(function(d) {
-        //         var link_line = {x1: d.source.x,x2: d.target.x, y1: d.source.y, y2: d.target.y};
-
-        //         var mx = (link_line.x2 + link_line.x1)/2;
-        //         var my = (link_line.y2 + link_line.y1)/2;
-
-        //         var link_midcircle = {x: mx, y: my, r: radius};
-                
-                
-
-        //         if (collided(link_midcircle,selection_circle) && (to_insid == false)) {
-                    
-                    
-        //             to_insid = true;
-                    
-                    
-                    
-        //         }
-        //     });
-                
-                
-            
-
-        // }).on("click", function(d) {
-        //     var x = d3.mouse(this)[0];
-        //     var y = d3.mouse(this)[1];
-
-        //     var selection_circle = {x: x, y: y, r: radius};
-
-        //     var to_insid = false;
-
-        //     //insertion of identities is triggered by a selection circle (where you click defines a node sized circle)
-        //     //the selection circle then has to intersect a midpoint circle (node sized) at the midpoint of the line to trigger
-
-        //     graph.links.forEach(function(d) {
-        //         var link_line = {x1: d.source.x,x2: d.target.x, y1: d.source.y, y2: d.target.y};
-
-        //         var mx = (link_line.x2 + link_line.x1)/2;
-        //         var my = (link_line.y2 + link_line.y1)/2;
-
-        //         var link_midcircle = {x: mx, y:my, r: radius};
-
-        //         if (collided(link_midcircle,selection_circle) && (to_insid == false)) {
-                    
-        //             console.log("Insert green Id");
-        //             to_insid = true;
-                    
-                    
-                    
-        //         }
-        //     });
-                
-                
-            
-
-        //});
-
-
+    
         //remova of identities
         //Implementation of colour change rule
         var timer = 0;
@@ -1628,29 +1765,18 @@ arq(choose_qubits(n=3))`
                         d.selected = false;
         
                     }
-        
-                    //Implementation of changing qubit to red spider
+
                     if (selected_node.t == 0) {
-                        //set the qubit node to the one specified by comb_red
-                        if (comb_red == true) {
-                            selected_node.t = 2;
-                            comb_red = false;
-                        }
-                        else if (comb_red == false) {
-                            selected_node.t = 1;
-                            comb_red = true;
-                        }
-                        
-                        //change connectivity to empty status (used to verify if spider can reconnect to qubit node)
-                        qnodes.filter(function(d) {return d.name == selected_node.name}).forEach(function(d){d.empty = true})
-                        console.log(qnodes)
+        
+                        qubit_to_spider(selected_node);
                         update();
                         d.selected = false;
-        
                     }
                 }
+                
                 prevent = false;
               }, delay);
+    
 
         }).on("dblclick", function(d) {
             console.log("complement rule");
@@ -1661,34 +1787,12 @@ arq(choose_qubits(n=3))`
         
             var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
         
-            //chnage colour of node
-            if (selected_node.t == 1) {
-                selected_node.t = 2;
-            }
-            else if (selected_node.t == 2) {
-                selected_node.t = 1;
-            }
-            //change connecting link types
-            var connected_links = graph.links.filter(function(l) {return single_link(l,d);});
-                    
-            connected_links.forEach(function(l) {
-            if (l.t == 1) {
-                l.t = 2;
-            }
-            else if (l.t == 2) {
-                l.t = 1;  
-            }
-            })
+            colour_change(selected_node);
             update();
             
         
-        });
-
-        
-        
-        
-        
-    })}};
+        });   
+    }};
 });
 
 
