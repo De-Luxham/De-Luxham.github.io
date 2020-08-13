@@ -48,104 +48,17 @@ define(['d3'], function(d3) {
     }
 
     return {
-    showGraph: function(tag, graph, width, height, node_size, connectivity) {
+    showGraph: function(tag, graph, width, height, node_size, connectivity, qasm_string) {
 
-        arq_gen_code = `import random
-ibmq_16_melbourne = {
-            "qubits":{
-            0:{"fideliy":4.905E-4},
-            1:{"fideliy":1.064E-3},
-            2:{"fideliy":5.315E-4},
-            3:{"fideliy":5.906E-4},
-            4:{"fideliy":6.344E-4},
-            5:{"fideliy":2.217E-3},
-            6:{"fideliy":1.510E-3},
-            7:{"fideliy":1.989E-3},
-            8:{"fideliy":9.986E-4},
-            9:{"fideliy":2.149E-3},
-            10:{"fideliy":2.632E-3},
-            11:{"fideliy":9.882E-4},
-            12:{"fideliy":1.399E-3},
-            13:{"fideliy":1.662E-3},
-            14:{"fideliy":7.760E-4}
-            },
         
-            "connections":[
-            {"source":0, "target":1, "fidelity":1.922E-2},
-            {"source":1, "target":2, "fidelity":1.501E-2},
-            {"source":2, "target":3, "fidelity":2.366E-2},
-            {"source":3, "target":4, "fidelity":1.669E-2},
-            {"source":4, "target":5, "fidelity":2.899E-2},
-            {"source":5, "target":6, "fidelity":5.361E-2},
-            {"source":0, "target":14, "fidelity":3.452E-2},
-            {"source":1, "target":13, "fidelity":4.366E-2},
-            {"source":2, "target":12, "fidelity":7.133E-2},
-            {"source":3, "target":11, "fidelity":4.214E-2},
-            {"source":4, "target":10, "fidelity":3.960E-2},
-            {"source":5, "target":9, "fidelity":3.976E-2},
-            {"source":6, "target":8, "fidelity":6.480E-2},
-            {"source":7, "target":8, "fidelity":5.661E-2},
-            {"source":8, "target":9, "fidelity":5.160E-2},
-            {"source":9, "target":10, "fidelity":4.849E-2},
-            {"source":10, "target":11, "fidelity":3.428E-2},
-            {"source":11, "target":12, "fidelity":2.444E-2},
-            {"source":12, "target":13, "fidelity":2.808E-2},
-            {"source":13, "target":14, "fidelity":3.452E-2}]}
-def arq(qubits=[0,1,2,3,4],device = ibmq_16_melbourne):
+        var connectivity_string =JSON.stringify(connectivity.connections);
 
-    our_arq = {
-        "qubits":{},
-        "connections":{}
-    }
-        
-    for qubit in qubits:
-        our_arq["qubits"][qubit] =device["qubits"][qubit]
-        
-    templist = []
-    for item in device["connections"]:
-        if item["source"] in qubits and item["target"] in qubits:
-            templist.append(item)
-    our_arq["connections"] = templist
-            
-    return our_arq       
-        
-        
-def choose_qubits(n=5,arq=ibmq_16_melbourne):
-            
-    if len(arq["qubits"]) < n:
-        print("There aren't enough qubits on this architecture for this value of n.")
-            
-    else:
-        qubits = []
-        start = random.randint(0,len(arq["qubits"])-1)
-        qubits.append(start)
-        
-        while len(qubits) < n:
-            templist = []
-            for item in arq["connections"]:
-                if item["source"] in qubits and item["target"] not in qubits:
-                    templist.append(item["target"])
-        
-                if item["target"] in qubits and item["source"] not in qubits:
-                    templist.append(item["source"])
-        
-            r = random.randint(0,len(templist)-1)
-            qubits.append(templist[r])
-        
-        return qubits
-arq(choose_qubits(n=3))`
-        
-        var conn_placeholder;
-
-        // languagePluginLoader.then(() => {
-        //     conn_placeholder = pyodide.runPython(arq_gen_code);
-        //     console.log(conn_placeholder);
-        // })
+        console.log(qasm_string)
+        console.log(connectivity_string)
 
 
-    
         //Basic connectivity example
-        connectivity = {connections:[{source:0,target:1,fidelity:1.599E-2,t:1,index:0},{source:1,target:2,fidelity:9.855E-3,t:1,index:1},{source:2,target:3,fidelity:2.855E-3,t:1,index:2},{source:3,target:4,fidelity:4.855E-3,t:1,index:2}]};
+        //connectivity = {connections:[{source:0,target:1,fidelity:1.599E-2,t:1,index:0},{source:1,target:2,fidelity:9.855E-3,t:1,index:1},{source:2,target:3,fidelity:2.855E-3,t:1,index:2},{source:3,target:4,fidelity:4.855E-3,t:1,index:2}]};
         //connectivity = conn_placeholder;
         //calculate min max fidelities for colour coding
         var max_colour = Math.max.apply(Math, connectivity.connections.map(function(o) { return o.fidelity; }));
@@ -191,7 +104,7 @@ arq(choose_qubits(n=3))`
         //New var added for force simulation
         var simulation = d3.forceSimulation()
         .force("link", d3.forceLink()
-        .id(function(d) { return d.id; }).strength(0.01))
+        .id(function(d) { return d.id; }).strength(0))  //sim off for now
         //.force("charge", d3.forceManyBody().strength(-20))
         //.force("center", d3.forceCenter(width / 2, height / 2))
     
@@ -353,8 +266,8 @@ arq(choose_qubits(n=3))`
             height = svg.attr("height")+1,
             radius = node_size;
 
-        var node_count = graph.nodes.length,
-            link_count = graph.links.length;
+        var node_count = graph.nodes.length-1,
+            link_count = graph.links.length-1;
         
         
         
@@ -388,13 +301,18 @@ arq(choose_qubits(n=3))`
             svg.selectAll("g").remove();
 
             clink  = svg.append("g")
-                .attr("class", "link")
-                .selectAll("line")
-                .data(connectivity_graph.links)
-                .enter().append("line")
-                .attr("stroke", "black")
-                .attr("style", "stroke-width: 1.5px")
-                .attr("marker-end", "url(#end)");
+       .attr("class", "link")
+       .selectAll("line")
+       .data(connectivity_graph.links)
+       .enter().append("path")
+       .attr("stroke", function(d) {return colour_scale(d.fidelity)})
+       .attr("style", "stroke-width: 1.5px")
+       //.attr("marker-end", "url(#end)")
+       .attr("d",function(d) {
+           console.log("M" + d.source.x + "," + d.source.y  + ","+"Q" + (d.source.x+d.target.x)/2 + x_off + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y);
+           return "M" + d.source.x + "," + d.source.y + ","+ "Q" + ((parseFloat(d.source.x)+parseFloat(d.target.x)/2) + parseFloat(x_off)).toString() + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y
+       })
+       .attr("fill", "none");
          
                 
                  cnode = svg.append("g")
@@ -692,6 +610,7 @@ import webbrowser
 import time
 import csv
 import networkx as nx
+import copy
 
 
             
@@ -710,7 +629,13 @@ def connections_to_nx_graph(connections):
 #Function which generates a score given a circuit and an architecture
 def return_score(graph_pyzx, architecture):
 
-    circ_from_test=zx.extract.extract_circuit(graph_pyzx,optimize_czs=False, optimize_cnots=0)           
+    print(architecture)
+    #temporarily doing a full reduce
+    #zx.full_reduce(graph_pyzx)
+
+    g_copy = copy.deepcopy(graph_pyzx)
+
+    circ_from_test=zx.extract.extract_circuit(g_copy,optimize_czs=False, optimize_cnots=0)           
     circuit_qasm_string=circ_from_test.to_qasm()
 
     two_qubit_gates=[]
@@ -775,25 +700,51 @@ def return_score(graph_pyzx, architecture):
                         score=score-6*(con['fidelity'])
             
     return score,circuit_qasm_string
+
+def new_spider(g, matches):
+    
+    rem_verts = []
+    etab = dict()
+    types = g.types()
+
+    for m in matches:
+        
+        v0, v1 = m[0], m[1]
+
+        g.set_phase(v0, g.phase(v0) + g.phase(v1))
+
+        if g.merge_vdata != None:
+            g.merge_vdata(g, v0, v1)
+
+        if g.track_phases:
+            g.fuse_phases(v0,v1)
+
+        # always delete the second vertex in the match
+        rem_verts.append(v1)
+
+        # edges from the second vertex are transferred to the first
+        for w in g.neighbors(v1):
+            if v0 == w: continue
+            e = (v0,w)
+            if e not in etab: etab[e] = [0,0]
+            etab[e][g.edge_type((v1,w))-1] += 1
+    return (etab, rem_verts, [], True)
+
             
 def Implement_Rules(data):
             
     #temporarily hardcoding graph object in
-    qasm = """OPENQASM 2.0;
-include "qelib1.inc";
-qreg q[5];
-h q[0];
-cx q[0],q[1];
-cx q[0],q[2];
-cx q[0],q[3];
-cx q[0],q[4];"""
+    qasm = """`.concat(qasm_string,`"""
 
     graph = zx.Circuit.from_qasm(qasm).to_graph()
+
+
+    
             
     for i in range(len(data)):
         print(type(data[i][0]),data[i][0])
         if data[i][0]=="s":                     #If rule to perform is spider
-            zx.rules.apply_rule(graph, zx.rules.spider, [[int(data[i][1]),int(data[i][2])]], check_isolated_vertices=True)
+            zx.rules.apply_rule(graph, new_spider, [[int(data[i][1]),int(data[i][2])]], check_isolated_vertices=True)
             #display(zx.draw(graph,labels=True))
             print(graph)
                             
@@ -853,7 +804,7 @@ cx q[0],q[4];"""
             zx.to_rg(graph,select=f)
             
             
-                
+              
             
                
     html2 ="""<h2>New pyzx graph</h2>
@@ -865,10 +816,12 @@ cx q[0],q[4];"""
                 
                 
     print(graph) 
-    score,qasm = return_score(graph,[{'source':0,'target':1,'fidelity':1.599E-2,'t':1,'index':0},{'source':1,'target':2,'fidelity':9.855E-3,'t':1,'index':1},{'source':2,'target':3,'fidelity':2.855E-3,'t':1,'index':2},{'source':3,'target':4,'fidelity':4.855E-3,'t':1,'index':2}])
+     
+    score,qasm = return_score(graph,` + connectivity_string+`)
+     
     output = {'qasm':qasm,'score':score}
     return output
-Implement_Rules(`.concat(rule_string,')')
+Implement_Rules(`.concat(rule_string,')'))
             
             
                 // languagePluginLoader.then(function ()  {
@@ -1100,7 +1053,7 @@ Implement_Rules(`.concat(rule_string,')')
             node_count++;
 
             //Add new node to list of nodes, Can do this by copying slcied node appending then changing its values
-            var new_node = {name:node_count.toString(), x:sliced_node.x+3, y:sliced_node.y+3, t:sliced_node.t, phase:sliced_node.phase, selecetd:false, previouslySelected:false, index:node_count, vy:0, vx:0};
+            var new_node = {name:node_count.toString(), x:sliced_node.x+20, y:sliced_node.y+20, t:sliced_node.t, phase:sliced_node.phase, selecetd:false, previouslySelected:false, index:node_count, vy:0, vx:0};
 
 
 
@@ -1193,6 +1146,8 @@ Implement_Rules(`.concat(rule_string,')')
                     selected_node.t = 1;
                     comb_red = true;
                 }
+
+                selected_node.x = selected_node.x + 20
                 
                 //change connectivity to empty status (used to verify if spider can reconnect to qubit node)
                 qnodes.filter(function(d) {return d.name == selected_node.name}).forEach(function(d){d.empty = true})

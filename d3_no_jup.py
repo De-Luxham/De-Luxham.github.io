@@ -32,7 +32,7 @@ def phase_to_s(a, t):
     ds = '' if a.denominator == 1 else '/' + str(a.denominator)
     # unicode 0x03c0 = pi
     return ns + '\u03c0' + ds
-def draw(g, scale=None, auto_hbox=True, labels=False):
+def draw(g, arqq, qasm, scale=None, auto_hbox=True, labels=False):
     global _d3_display_seq
     if not in_webpage: 
         raise Exception("This method only works when loaded in a webpage or Jupyter notebook")
@@ -58,6 +58,8 @@ def draw(g, scale=None, auto_hbox=True, labels=False):
               'target': str(g.edge_t(e)),
               't': g.edge_type(e) } for e in g.edges()]
     graphj = json.dumps({'nodes': nodes, 'links': links})
+
+    connectivity = json.dumps(arqq)
     #Outputting the HTML version of the graph, turned into a javascript object
     #Seperation is as  the .format was having trouble with the curly brackets
     #not the prettiest but works
@@ -74,8 +76,26 @@ def draw(g, scale=None, auto_hbox=True, labels=False):
   width: 500px;
   height: 200px;
 }
+.div3 {
+  margin: auto;
+  text-align: center;
+  width: 50%;
+  border: 3px solid red;
+  font-size: 15px;
+}
+.center {
+  margin: auto;
+  text-align: center;
+  width: 50%;
+  border: 3px solid green;
+  font-size: 40px;
+}
     </style>
     <body>
+    <div class="center">
+        <p>Zedex: Prepare to cry edition</p>
+      </div>
+      <div class="div3" id="score"></div>
     <div class="div2" id="circuit"></div>
     <div  class="div1" style="overflow:auto"  id="graph-output-1" ></div>
     <script type="text/javascript" src="https://unpkg.com/quantum-circuit"></script>
@@ -95,9 +115,9 @@ def draw(g, scale=None, auto_hbox=True, labels=False):
             });"""
     html2= """require(['pyzx'], function(pyzx) {{
             pyzx.showGraph('#graph-output-1',
-            JSON.parse('{1}'), {2}, {3}, {4});
+            JSON.parse('{1}'), {2}, {3}, {4} ,JSON.parse('{5}') ,`{6}`);
         }});
-        </script>""".format(seq, graphj, w, h, node_size) 
+        </script>""".format(seq, graphj, w, h, node_size, connectivity, qasm) 
     html3="""
     <script type="text/javascript">
     require(['pyodid'], function(pyodid) {

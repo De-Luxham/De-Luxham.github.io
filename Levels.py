@@ -123,9 +123,9 @@ def QEC7(pyzx=True):
 	circ.cx(6,9)
 	
 	if pyzx is True:
-		return zx.sqasm(Three_qec.qasm(),simplify=False)
+		return zx.sqasm(circ.qasm(),simplify=False)
 	else:
-		return Three_qec
+		return circ
 
 
 def QEC3_1Garanteed(pyzx=True):
