@@ -1,40 +1,58 @@
-import sys; sys.path.append('pyzx-master')
+import sys
+import numpy as np
+import random, math, os
 import pyzx as zx
-from Dict import Circuits, ibmq_16_melbourne
-from Levels import *
-import networkx as nx 
+from fractions import Fraction
+import webbrowser
+import time
+import csv
+import networkx as nx
 
 
-#Create circuit input to test
-graph_pyzx=QFT_N(2,pyzx=True)
-circ_from_test=zx.extract.extract_circuit(graph_pyzx,optimize_czs=False, optimize_cnots=0)           
-qasm_string=circ_from_test.to_qasm()
-a=qc.from_qasm_str(qasm_string)
-
-#load in IBMS 16 qubit architecture to test
-connections={}
-connections=ibmq_16_melbourne['connections']
-
-
-#Small function that returns a nx graph of a given architecture
-
+            
+            
+            
+#this takes a list as arguement, shape depends on the rule being implemented, but the first element 
+#of each row should be the rule to be implemented.
 def connections_to_nx_graph(connections):
-
+    print(connections)
     arch_graph = nx.Graph()
-    for connect in connections:
-        arch_graph.add_edge(int(connect['source']),int(connect['target']),weight=float(connect['fidelity']))
+    
+    a = connections[0]['source']
+    b = connections[0]['target']
+    c = connections[0]['fidelity']
+    print("abc",a,b,c)
+    arch_graph.add_edge(int(a),int(b),weight=float(c))
+    a = connections[1]['source']
+    b = connections[1]['target']
+    c = connections[1]['fidelity']
+    print("abc",a,b,c)
+    arch_graph.add_edge(int(a),int(b),weight=float(c))
+    a = connections[2]['source']
+    b = connections[2]['target']
+    c = connections[2]['fidelity']
+    print("abc",a,b,c)
+    arch_graph.add_edge(int(a),int(b),weight=float(c))
+    print("conn list",connections)
+
+    print("made it to end")
+        
  
     return arch_graph
 
 
 #Function which generates a score given a circuit and an architecture
-def return_score(circuit_qasm_string, architecture):
+def return_score(graph_pyzx, architecture):
+
+    circ_from_test=zx.extract.extract_circuit(graph_pyzx,optimize_czs=False, optimize_cnots=0)           
+    circuit_qasm_string=circ_from_test.to_qasm()
+
     two_qubit_gates=[]
     nx_arch=connections_to_nx_graph(architecture)
     connections=architecture 
    
-    
-    qasm_list=circuit_qasm_string.split('\n')
+    print(circuit_qasm_string)
+    qasm_list=circuit_qasm_string.split(""\n"")
     #Loop to count the two qubit gates and store the qubits they act on
     for element in qasm_list:
         if len(element)>0:
@@ -53,8 +71,8 @@ def return_score(circuit_qasm_string, architecture):
             if d['source']==temp_TQG[0]:
         
                 if d['target']==temp_TQG[1]:
-                      temp_TQG[2]=True
-                      continue
+                    temp_TQG[2]=True
+                    continue
             
             if d['source']==temp_TQG[1]:
         
@@ -91,8 +109,72 @@ def return_score(circuit_qasm_string, architecture):
             
     return score
             
+def Implement_Rules(data):
+            
+    #temporarily hardcoding graph object in
+    qubit_amount = 3
+    depth = 4
+    random.seed(1337)
+    graph = zx.generate.cliffords(qubit_amount, depth)
+            
+    for i in range(len(data)):
+        print(type(data[i][0]),data[i][0])
+        if data[i][0]=="s":                     #If rule to perform is spider
+            zx.rules.apply_rule(graph, zx.rules.spider, [[int(data[i][1]),int(data[i][2])]], check_isolated_vertices=True)
+            #display(zx.draw(graph,labels=True))
+            print(graph)
+                            
+        if data[i][0]=="u":  
+            neighbours=[]                   #If rule to perform is unspider
+            data[i][1]=int(data[i][1])          #target node
+            data[i][2]=Fraction(data[i][2])          #targets phase 
+            data[i][3]=int(data[i][3])          # Qubit/row index - where to position on graph
+            data[i][4]=int(data[i][4])          #Column index (row in pyzx) where to position on graph
+                            
+            for j in range(5, len(data[i])):       #Neeed to loop over every nearest neighbour to cast it to integer
+                                                                    #start at the nearest neighbour entries
+                neighbours.append(int(data[i][j])) 
+            zx.rules.unspider(graph, [data[i][1], tuple(neighbours),data[i][2] ], data[i][4] , data[i][3] )
+            #display(zx.draw(graph,labels=True))
+            print(graph)
+            
+            
+                #The rules called here were written by me, and require lots more testing and rewriting
+                #=============================================================================
+        if data[i][0]=="i":                     
+            neighbours=[]
+            neighbours.append(int(data[i][1]))
+            neighbours.append(int(data[i][2]))  
+            zx.rules.add_identity(graph,tuple(neighbours),data[i][3])
+            #display(zx.draw(graph,labels=True))
+            print(graph)
+            
+            
+        if data[i][0]=="ri":
+            neighbours=[]
+            neighbours.append(int(data[i][2]))
+            neighbours.append(int(data[i][3]))
+            zx.rules.remove_identity(graph,int(data[i][1]),tuple(neighbours))
+            #display(zx.draw(graph,labels=True))
+            print(graph)
+            
+            
                 
-return_score(qasm_string,connections) 
-
+            
+               
+    html2 ="""<h2>New pyzx graph</h2>
+                
+                <img src="./data/graph.png" alt="New Circuit" width="500" height="333">
+                </body>
+                </html>
+                """
+                
+                
+    print(graph)
+    
+    score = return_score(graph,[{'source':0,'target':1,'fidelity':1.599E-2,'t':1,'index':0},{'source':1,'target':2,'fidelity':9.855E-3,'t':1,'index':1},{'source':0,'target':2,'fidelity':4.855E-3,'t':1,'index':2}])
+    qasm = circ_dat.to_qasm()
+    output = {'qasm':qasm,'score':score}
+    return output
         
 

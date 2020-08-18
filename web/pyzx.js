@@ -685,7 +685,7 @@ def return_score(graph_pyzx, architecture):
             t=two_qubit_gates[j][1]
             for con in connections:
                 if con['source']==s and con['target']==t:
-                    score=score-1*(con['fidelity'])
+                    score=score-1*(con['fidelity']*100)
         
         #now if node not on architecture, perform Dijstikas alg
         #find mininmal weighted path between the two nodes
@@ -697,9 +697,12 @@ def return_score(graph_pyzx, architecture):
                 t=path[i+1]
                 for con in connections:
                     if con['source']==s and con['target']==t:
-                        score=score-6*(con['fidelity'])
+                        score=score-6*(con['fidelity']*100)
+    
+    print(score)
+    output = {'qasm':circuit_qasm_string,'score':score}
             
-    return score,circuit_qasm_string
+    return output
 
 def new_spider(g, matches):
     
@@ -806,22 +809,28 @@ def Implement_Rules(data):
             
               
             
-               
-    html2 ="""<h2>New pyzx graph</h2>
+    #make fresh copy of graph afetr rules applied for clean extraction
+    g_copy = copy.deepcopy(graph)
+
+    vertices = g_copy.vertices()
+    edges = list(g_copy.edges())
+    vertlist = list(vertices)
+
+    graph_new = zx.Graph()
+
+    row_counter = 0
+
+    for v in vertices:
+        graph_new.add_vertex(g_copy.type(v),qubit=g_copy.qubit(v),row=row_counter,phase=g_copy.phase(v))
+        row_counter = row_counter + 1
+    
+    for e in edges:
+        graph_new.add_edge((vertlist.index(e[0]),vertlist.index(e[1])),edgetype=g_copy.edge_type(g_copy.edge(e[0],e[1])))
+
+    graph_new.normalize()
                 
-                <img src="./data/graph.png" alt="New Circuit" width="500" height="333">
-                </body>
-                </html>
-                """
-                
-                
-    print(graph) 
-     
-    score,qasm = return_score(graph,` + connectivity_string+`)
-     
-    output = {'qasm':qasm,'score':score}
-    return output
-Implement_Rules(`.concat(rule_string,')'))
+    return graph_new
+return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
             
             
                 // languagePluginLoader.then(function ()  {
