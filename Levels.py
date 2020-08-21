@@ -34,6 +34,7 @@ def cRn(Circ,a,b,n):
 	return Circ
 
 # This is the decomposition of a ccz gate built of CNOT and T gates.
+# https://arxiv.org/pdf/0803.2316.pdf
 def ccz(circ,a,b,target):
 	circ.cx(b,target)
 	circ.tdg(target)
@@ -128,15 +129,14 @@ def QEC7(pyzx=True):
 		return circ
 
 
-def QEC3_1Garanteed(pyzx=True):
+def QEC3_1Garanteed(pyzx=True,error_qubit=random.randint(0,3)):
 	circ = QuantumCircuit(3)
 	circ.cx(0,1)
-	circ.cw(0,2)
+	circ.cx(0,2)
 	"""Error"""
-	ran = random.randint(0,3)
-	circ.x(ran)
+	circ.x(error_qubit)
 	circ.cx(0,1)
-	circ.cw(0,2)
+	circ.cx(0,2)
 	circ.h(0)
 	circ = ccz(circ,1,2,0)
 	circ.h(0)
@@ -158,7 +158,11 @@ def QFT2(pyzx=True):
 	
 	QFT_2.h(0)
 	
+	QFT_2.barrier()
+	
 	QFT_2 = cRn(QFT_2,0,1,2)
+	
+	QFT_2.barrier()
 	
 	QFT_2.h(1)
 	
@@ -175,12 +179,23 @@ def QFT3(pyzx=True):
 	QFT_3 = QuantumCircuit(3)
 	QFT_3.h(0)
 
+	QFT_3.barrier()
+
 	QFT_3 = cRn(QFT_3,0,1,2)
+	
+	QFT_3.barrier()
+	
 	QFT_3 = cRn(QFT_3,0,2,3)
+	
+	QFT_3.barrier()
 
 	QFT_3.h(1)
+	
+	QFT_3.barrier()
 
 	QFT_3 = cRn(QFT_3,1,2,2)
+	
+	QFT_3.barrier()
 
 	QFT_3.h(2)
 
@@ -196,18 +211,40 @@ def QFT3(pyzx=True):
 def QFT4(pyzx=True):
 	QFT_4 = QuantumCircuit(4)
 	QFT_4.h(0)
+	
+	QFT_4.barrier()
 
 	QFT_4 = cRn(QFT_4,0,1,2)
+	
+	QFT_4.barrier()
+	
 	QFT_4 = cRn(QFT_4,0,2,3)
+	
+	QFT_4.barrier()
+	
 	QFT_4 = cRn(QFT_4,0,3,4)
+	
+	QFT_4.barrier()
 
 	QFT_4.h(1)
+	
+	QFT_4.barrier()
 
 	QFT_4 = cRn(QFT_4,1,2,2)
+	
+	QFT_4.barrier()
+	
 	QFT_4 = cRn(QFT_4,1,3,3)
+	
+	QFT_4.barrier()
+	
 	QFT_4.h(2)
+	
+	QFT_4.barrier()
 
 	QFT_4 = cRn(QFT_4,2,3,2)
+	
+	QFT_4.barrier()
 
 	QFT_4.h(3)
 
@@ -308,8 +345,10 @@ def QFT_N(n,pyzx=True):
 	for i in range(n):
 		lis.append(i)
 		QFT.h(i)
+		QFT.barrier()
 		for j in np.arange(1,rep):
 			QFT = cRn(QFT,i,i+j,1+j)
+			QFT.barrier()
             
 		rep = rep - 1
 	
@@ -371,7 +410,6 @@ def GSA2(hidden_element=0,pyzx=True):
 	GSA2.h(0)
 	GSA2.h(1)
 	GSA2.h(2)
-
 	##Hiden cell
 	if hidden_element ==0:
 		GSA2 = GSA2_0(GSA2)
@@ -545,3 +583,43 @@ def GSA3(hidden_element=0,iterations=2,pyzx=True):
 		return zx.sqasm(GSA3.qasm(),simplify=False)
 	else:
 		return GSA3
+
+
+"""Quantum Half Adder"""
+# http://www.dmphotonics.com/GreyhawkOptics/DovePrism/barbosa_pra_06.pdf
+
+def QHA(pyzx=True):
+	circ = QuantumCircuit(3)
+	
+	circ.h(2)
+	circ = ccz(circ,0,1,2)
+	circ.h(2)
+	
+	circ.cx(1,2)
+	
+	if pyzx is True:
+		return zx.sqasm(circ.qasm(),simplify=False)
+	else:
+		return circ
+
+
+"""Random Circuit"""
+
+def RandoCirc(qubit_number=5,depth=50):
+	
+	return zx.generate.cliffords(qubit_number,depth)
+
+
+
+"""Circuit"""
+
+
+
+
+
+"""Circuit"""
+
+
+
+
+

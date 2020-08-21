@@ -147,6 +147,22 @@ define(['d3'], function(d3) {
 
         var connectivity_graph = {nodes: qnodes,links:connectivity.connections};
         console.log(connectivity_graph);
+
+
+        //draw circuit
+            
+        var circuit_old = new QuantumCircuit();
+            circuit_old.importQASM(qasm_string, function(errors) {
+                console.log(errors);
+        });
+        // Assuming we have <div id="drawing"></div> somewhere in HTML
+        var old_circ_container = document.getElementById("old_circuit");
+        // SVG is returned as string
+        var svg2 = circuit_old.exportSVG(true);
+
+        // add SVG into container
+        old_circ_container.innerHTML = svg2;
+    
         // build the arrow.
         svg.append("svg:defs").selectAll("marker")
            .data(["end"])      // Different link/path types can be defined here
@@ -173,7 +189,7 @@ define(['d3'], function(d3) {
        //.attr("marker-end", "url(#end)")
        .attr("d",function(d) {
            console.log("M" + d.source.x + "," + d.source.y  + ","+"Q" + (d.source.x+d.target.x)/2 + x_off + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y);
-           return "M" + d.source.x + "," + d.source.y + ","+ "Q" + ((parseFloat(d.source.x)+parseFloat(d.target.x)/2) + parseFloat(x_off)).toString() + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y
+           return "M" + d.source.x + "," + d.source.y + ","+ "Q" + ((1/50)*Math.abs(d.source.y-d.target.y)*((parseFloat(d.source.x)+parseFloat(d.target.x)/2) + parseFloat(x_off))).toString() + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y
        })
        .attr("fill", "none");
 
@@ -613,6 +629,86 @@ import networkx as nx
 import copy
 
 
+
+def insert_ids_hadamards(pyzx_graph1): 
+    pyzx_semi=copy.deepcopy(pyzx_graph1)
+    edge_list=zx.graph.graph_s.GraphS.edges(pyzx_semi)
+    
+    edges=[]
+    for i in edge_list:
+        if pyzx_semi.edge_type(i)==2:
+            continue
+        else:
+            edges.append(i)
+            
+    
+    for edge in edges:
+        id1=edge[0]
+        id2=edge[1]
+        e = pyzx_semi.edge(id1,id2)
+        pyzx_semi.remove_edge(e)
+        j = pyzx_semi.add_vertex(ty=1)
+        pyzx_semi.add_edge((id1,j),1)
+        pyzx_semi.add_edge((j,id2),1)
+        
+    edge_list2=zx.graph.graph_s.GraphS.edges(pyzx_semi)
+    for i in edge_list2:
+        if pyzx_semi.edge_type(i)!=2:
+            pyzx_semi.set_edge_type(i,2)
+            
+        else:
+            continue
+    
+    return pyzx_semi
+    
+    
+def remove_haddys(circuit):
+
+    qasm_list=circuit.split('\\n')
+    qasm_list_reduced=copy.deepcopy(qasm_list)
+    qubit_tags=[]
+    current_gate=list()
+    
+    n=int(qasm_list[2][7])
+ 
+    
+    
+    to_be_deleted=[]
+    for i in range(n):
+        qubit_tags.append('q['+str(i)+']')
+        current_gate.append(None)
+        
+        
+    for k in range(n):
+        to_be_tested_indices=[i for i, x in enumerate(qasm_list) if qubit_tags[k] in x]
+        
+    
+        for i in range(len(to_be_tested_indices)-1):
+            #stops it deleting chains of say 3 hadamards, where 1 should be left behind
+            if to_be_tested_indices[i] in to_be_deleted:
+                continue
+        
+            if qasm_list[int(to_be_tested_indices[i])]==qasm_list[int(to_be_tested_indices[i+1])]:
+           
+                if to_be_tested_indices[i] not in to_be_deleted:
+                    to_be_deleted.append(to_be_tested_indices[i])
+                    
+                if to_be_tested_indices[i+1] not in to_be_deleted:
+                    to_be_deleted.append(to_be_tested_indices[i+1])
+                    
+        to_be_tested_indices=[]
+   
+  
+    for ele in sorted(to_be_deleted, reverse = True):  
+        del qasm_list_reduced[ele]   
+            
+
+    qasm_final=str()
+    separator = '\\n '
+    qasm_final=separator.join(qasm_list_reduced)
+    
+    return qasm_final
+
             
             
             
@@ -627,16 +723,31 @@ def connections_to_nx_graph(connections):
 
 
 #Function which generates a score given a circuit and an architecture
-def return_score(graph_pyzx, architecture):
+def return_score(graph_qasm, architecture):
+
+    graph_pyzx = graph_qasm[0]
+
+    qasm_initial = graph_qasm[1]
 
     print(architecture)
     #temporarily doing a full reduce
     #zx.full_reduce(graph_pyzx)
 
+
+
+
     g_copy = copy.deepcopy(graph_pyzx)
 
-    circ_from_test=zx.extract.extract_circuit(g_copy,optimize_czs=False, optimize_cnots=0)           
-    circuit_qasm_string=circ_from_test.to_qasm()
+    #add in identities and hadamrads to pyzx graph
+    zx.simplify.to_gh(g_copy)
+    graph_semi=insert_ids_hadamards(g_copy)
+
+    circ_from_test=zx.extract.extract_circuit(graph_semi,optimize_czs=False, optimize_cnots=0) 
+    
+    #remove excess hadamards from qasm string
+    qasm_final=remove_haddys(circ_from_test.to_qasm())
+
+    circuit_qasm_string=qasm_final
 
     two_qubit_gates=[]
     nx_arch=connections_to_nx_graph(architecture)
@@ -700,7 +811,10 @@ def return_score(graph_pyzx, architecture):
                         score=score-6*(con['fidelity']*100)
     
     print(score)
-    output = {'qasm':circuit_qasm_string,'score':score}
+    
+    stats = zx.circuit.Circuit.from_qasm(circuit_qasm_string).stats()
+
+    output = {'qasm':circuit_qasm_string,'score':score,'initial_qasm':qasm_initial,'stats':stats}
             
     return output
 
@@ -789,9 +903,11 @@ def Implement_Rules(data):
         #rules for changing qubit nodes to red spiders and vice versa
 
         if data[i][0] == "qr":
+            graph.inputs.remove(data[i][1])
             graph.set_type(data[i][1],2)
         
         if data[i][0] == "rq":
+            graph.inputs.append(data[i][1])
             graph.set_type(data[i][1],0)
 
         if data[i][0] == "cc":
@@ -809,27 +925,28 @@ def Implement_Rules(data):
             
               
             
-    #make fresh copy of graph afetr rules applied for clean extraction
-    g_copy = copy.deepcopy(graph)
 
-    vertices = g_copy.vertices()
-    edges = list(g_copy.edges())
-    vertlist = list(vertices)
 
-    graph_new = zx.Graph()
 
-    row_counter = 0
+    #add in identities and hadamrads to pyzx graph
+    zx.simplify.to_gh(graph)
+    graph_semi=insert_ids_hadamards(graph)
 
-    for v in vertices:
-        graph_new.add_vertex(g_copy.type(v),qubit=g_copy.qubit(v),row=row_counter,phase=g_copy.phase(v))
-        row_counter = row_counter + 1
-    
-    for e in edges:
-        graph_new.add_edge((vertlist.index(e[0]),vertlist.index(e[1])),edgetype=g_copy.edge_type(g_copy.edge(e[0],e[1])))
+    #extract to circuit
+    circ_from_test=zx.extract.extract_circuit(graph_semi.copy(),optimize_czs=False, optimize_cnots=0,quiet=True)           
 
-    graph_new.normalize()
+    #remove excess hadamards from qasm string
+    qasm_final=remove_haddys(circ_from_test.to_qasm())
+
+    #convert final circuit to qasm string
+    final_circuit=zx.circuit.Circuit.from_qasm(qasm_final)
+
+    #convert this to an if statement
+    #if true display circuit, if False error message
+    print(zx.compare_tensors(zx.circuit.Circuit.to_tensor(final_circuit),zx.circuit.Circuit.to_tensor(zx.circuit.Circuit.from_qasm(qasm))))
+
                 
-    return graph_new
+    return graph,qasm
 return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
             
             
@@ -844,24 +961,36 @@ return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
 
                 // }); 
                 pyodide.loadPackage('matplotlib').then(() => {
-                    var qasm,score,x;
+                    var qasm,qasm_init,score,x,stats;
                     x = pyodide.runPython(pythonCode2);
+                    qasm_init = x.initial_qasm;
                     qasm = x.qasm;
                     score = x.score;
+                    stats = x.stats;
                     console.log(score);
                     console.log(qasm);
-                    // var circuit = new QuantumCircuit();
-                    // circuit.importQASM(qasm, function(errors) {
-                    //     console.log(errors);
-                    // });
+                    var circuit = new QuantumCircuit();
+                    circuit.importQASM(qasm, function(errors) {
+                        console.log(errors);
+                    });
+                    var circuit_old = new QuantumCircuit();
+                    circuit_old.importQASM(qasm_init, function(errors) {
+                        console.log(errors);
+                    });
                     // Assuming we have <div id="drawing"></div> somewhere in HTML
                     var circ_container = document.getElementById("circuit");
+                    var old_circ_container = document.getElementById("old_circuit");
                     var score_container = document.getElementById("score");
+                    var stats_container = document.getElementById("stats");
                     // SVG is returned as string
-                    //var svg = circuit.exportSVG(true);
+                    var svg = circuit.exportSVG(true);
+                    var svg2 = circuit_old.exportSVG(true);
 
                     // add SVG into container
-                    //circ_container.innerHTML = svg;
+                    circ_container.innerHTML = svg;
+                    old_circ_container.innerHTML = svg2;
+
+                    stats_container.innerHTML = "Circuit stats:" + stats;
 
                     score_container.innerHTML = "Current Score:" + score;
                   });
@@ -1179,7 +1308,8 @@ return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
         //recombine spider to qubit node
         function recomb(selected_node,recomb_node) {
             selected_node.t = 0;
-            recomb_node.name = selected_node.name;
+
+
             recomb_node.empty = false;
             selected_node.x = recomb_node.x;
             selected_node.y = recomb_node.y

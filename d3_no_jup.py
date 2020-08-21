@@ -13,6 +13,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import json
 from fractions import Fraction
+import pyzx as zx
 __all__ = ['init', 'draw']
 try:
    in_webpage = True
@@ -38,6 +39,9 @@ def draw(g, arqq, qasm, scale=None, auto_hbox=True, labels=False):
         raise Exception("This method only works when loaded in a webpage or Jupyter notebook")
     if not hasattr(g, 'vertices'):
         g = g.to_graph(zh=True)
+
+    g = zx.circuit.Circuit.from_qasm(qasm).to_graph()
+
     _d3_display_seq += 1
     seq = _d3_display_seq
     if scale == None:
@@ -83,6 +87,18 @@ def draw(g, arqq, qasm, scale=None, auto_hbox=True, labels=False):
   border: 3px solid red;
   font-size: 15px;
 }
+.div5 {
+  margin: auto;
+  text-align: center;
+  width: 50%;
+  border: 3px solid red;
+  font-size: 15px;
+}
+.div4 {
+  margin: auto;
+  width: 500px;
+  height: 500px;
+}
 .center {
   margin: auto;
   text-align: center;
@@ -96,7 +112,9 @@ def draw(g, arqq, qasm, scale=None, auto_hbox=True, labels=False):
         <p>Zedex: Prepare to cry edition</p>
       </div>
       <div class="div3" id="score"></div>
-    <div class="div2" id="circuit"></div>
+      <div class="div5" id="stats"></div>
+    <div class="div2" style="overflow:auto" id="circuit"></div>
+    <div class="div4" style="overflow:auto" id="old_circuit"></div>
     <div  class="div1" style="overflow:auto"  id="graph-output-1" ></div>
     <script type="text/javascript" src="https://unpkg.com/quantum-circuit"></script>
     <script src="require.js"></script>

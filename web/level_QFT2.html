@@ -18,6 +18,18 @@
   border: 3px solid red;
   font-size: 15px;
 }
+.div5 {
+  margin: auto;
+  text-align: center;
+  width: 50%;
+  border: 3px solid red;
+  font-size: 15px;
+}
+.div4 {
+  margin: auto;
+  width: 500px;
+  height: 500px;
+}
 .center {
   margin: auto;
   text-align: center;
@@ -31,7 +43,9 @@
         <p>Zedex: Prepare to cry edition</p>
       </div>
       <div class="div3" id="score"></div>
-    <div class="div2" id="circuit"></div>
+      <div class="div5" id="stats"></div>
+    <div class="div2" style="overflow:auto" id="circuit"></div>
+    <div class="div4" style="overflow:auto" id="old_circuit"></div>
     <div  class="div1" style="overflow:auto"  id="graph-output-1" ></div>
     <script type="text/javascript" src="https://unpkg.com/quantum-circuit"></script>
     <script src="require.js"></script>
@@ -49,7 +63,7 @@
                     }
             });require(['pyzx'], function(pyzx) {
             pyzx.showGraph('#graph-output-1',
-            JSON.parse('{"nodes": [{"name": "0", "x": 50, "y": 100, "t": 0, "phase": ""}, {"name": "1", "x": 50, "y": 150, "t": 0, "phase": ""}, {"name": "2", "x": 100, "y": 100, "t": 1, "phase": ""}, {"name": "3", "x": 150, "y": 100, "t": 1, "phase": "44947120\u03c0/64380989"}, {"name": "4", "x": 100, "y": 150, "t": 1, "phase": "44947120\u03c0/64380989"}, {"name": "5", "x": 200, "y": 150, "t": 2, "phase": ""}, {"name": "6", "x": 200, "y": 100, "t": 1, "phase": ""}, {"name": "7", "x": 250, "y": 150, "t": 1, "phase": "4963883\u03c0/34203102"}, {"name": "8", "x": 300, "y": 150, "t": 2, "phase": ""}, {"name": "9", "x": 300, "y": 100, "t": 1, "phase": ""}, {"name": "10", "x": 350, "y": 150, "t": 1, "phase": ""}, {"name": "11", "x": 400, "y": 100, "t": 0, "phase": ""}, {"name": "12", "x": 400, "y": 150, "t": 0, "phase": ""}], "links": [{"source": "0", "target": "2", "t": 2}, {"source": "1", "target": "4", "t": 1}, {"source": "2", "target": "3", "t": 1}, {"source": "3", "target": "6", "t": 1}, {"source": "4", "target": "5", "t": 1}, {"source": "5", "target": "6", "t": 1}, {"source": "5", "target": "7", "t": 1}, {"source": "6", "target": "9", "t": 1}, {"source": "7", "target": "8", "t": 1}, {"source": "8", "target": "9", "t": 1}, {"source": "8", "target": "10", "t": 2}, {"source": "9", "target": "11", "t": 1}, {"source": "10", "target": "12", "t": 1}]}'), 450, 250, 10.0 ,JSON.parse('{"connections": [{"source": 0, "target": 1, "fidelity": 0.0648}]}') ,`OPENQASM 2.0;
+            JSON.parse('{"nodes": [{"name": "0", "x": 50, "y": 100, "t": 0, "phase": ""}, {"name": "1", "x": 50, "y": 150, "t": 0, "phase": ""}, {"name": "2", "x": 100, "y": 100, "t": 1, "phase": ""}, {"name": "3", "x": 100, "y": 150, "t": 1, "phase": "44947120\u03c0/64380989"}, {"name": "4", "x": 150, "y": 100, "t": 1, "phase": "44947120\u03c0/64380989"}, {"name": "5", "x": 200, "y": 150, "t": 2, "phase": ""}, {"name": "6", "x": 200, "y": 100, "t": 1, "phase": ""}, {"name": "7", "x": 250, "y": 150, "t": 1, "phase": "4963883\u03c0/34203102"}, {"name": "8", "x": 300, "y": 150, "t": 2, "phase": ""}, {"name": "9", "x": 300, "y": 100, "t": 1, "phase": ""}, {"name": "10", "x": 350, "y": 150, "t": 1, "phase": ""}, {"name": "11", "x": 400, "y": 100, "t": 0, "phase": ""}, {"name": "12", "x": 400, "y": 150, "t": 0, "phase": ""}], "links": [{"source": "0", "target": "2", "t": 2}, {"source": "1", "target": "3", "t": 1}, {"source": "2", "target": "4", "t": 1}, {"source": "3", "target": "5", "t": 1}, {"source": "4", "target": "6", "t": 1}, {"source": "5", "target": "6", "t": 1}, {"source": "5", "target": "7", "t": 1}, {"source": "6", "target": "9", "t": 1}, {"source": "7", "target": "8", "t": 1}, {"source": "8", "target": "9", "t": 1}, {"source": "8", "target": "10", "t": 2}, {"source": "9", "target": "11", "t": 1}, {"source": "10", "target": "12", "t": 1}]}'), 450, 250, 10.0 ,JSON.parse('{"connections": [{"source": 1, "target": 0, "fidelity": 0.0396}]}') ,`OPENQASM 2.0;
 include "qelib1.inc";
 qreg q[2];
 h q[0];

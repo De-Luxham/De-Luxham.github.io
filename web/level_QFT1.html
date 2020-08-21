@@ -18,6 +18,18 @@
   border: 3px solid red;
   font-size: 15px;
 }
+.div5 {
+  margin: auto;
+  text-align: center;
+  width: 50%;
+  border: 3px solid red;
+  font-size: 15px;
+}
+.div4 {
+  margin: auto;
+  width: 500px;
+  height: 500px;
+}
 .center {
   margin: auto;
   text-align: center;
@@ -31,7 +43,9 @@
         <p>Zedex: Prepare to cry edition</p>
       </div>
       <div class="div3" id="score"></div>
-    <div class="div2" id="circuit"></div>
+      <div class="div5" id="stats"></div>
+    <div class="div2" style="overflow:auto" id="circuit"></div>
+    <div class="div4" style="overflow:auto" id="old_circuit"></div>
     <div  class="div1" style="overflow:auto"  id="graph-output-1" ></div>
     <script type="text/javascript" src="https://unpkg.com/quantum-circuit"></script>
     <script src="require.js"></script>
