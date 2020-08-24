@@ -2,51 +2,81 @@
     <meta charset="utf-8">
     <style> body { font-family: sans-serif; }
 .div1 {
-  margin: auto;
-  width: 1000px;
-  height: 500px;
+  zoom:1;
+  margin: 0% 0% 0% 20%;
+  width: 100%;
+  height: 40%;
+  position:relative;
 }
 .div2 {
-  margin: auto;
-  width: 500px;
-  height: 200px;
+  zoom: 0.4;
+  margin: 0% 0px 0% 0px;
+  width: 100%;
+  height: 8%;
+  title:Optimised Circuit
+  text-align: left;
+  font-size: 15pt
+  position:relative;
 }
 .div3 {
   margin: auto;
   text-align: center;
-  width: 50%;
+  width: 10%;
   border: 3px solid red;
-  font-size: 15px;
+  font-size: 10px;
+  position:relative;
 }
 .div5 {
   margin: auto;
   text-align: center;
   width: 50%;
   border: 3px solid red;
-  font-size: 15px;
+  font-size: 10px;
+  position:relative;
 }
 .div4 {
-  margin: auto;
-  width: 500px;
-  height: 500px;
+  zoom: 0.4;
+  margin: 0% 0px 0px 0px;
+  width: 100%;
+  height:8%;
+  text-align: left;
+  font-size: 15pt
+  position:relative;
 }
-.center {
+.title_box {
   margin: auto;
   text-align: center;
-  width: 50%;
+  width: 100%;
+  height:7%;
   border: 3px solid green;
-  font-size: 40px;
+  font-size: 20px;
+  position: relative;
+}
+.label{
+  margin: auto;
+  text-align: left;
+  width: 100%;
+  height:1%;
+  font-size: 15px;
+  position: relative;
+}
+.container {
+  width: 100%
 }
     </style>
     <body>
-    <div class="center">
-        <p>Zedex: Prepare to cry edition</p>
+    <div class="container">
+        <div class="title_box">
+        <p>Zedex: Pre-Alpha Testing</p>
       </div>
       <div class="div3" id="score"></div>
-      <div class="div5" id="stats"></div>
-    <div class="div2" style="overflow:auto" id="circuit"></div>
-    <div class="div4" style="overflow:auto" id="old_circuit"></div>
-    <div  class="div1" style="overflow:auto"  id="graph-output-1" ></div>
+      <div class="div5"  id="stats"></div>
+      <div  class="div1"   id="graph-output-1" ></div>
+      <div  class="label" style="float:left" ><p>Optimised Circuit:</p></div>
+        <div class="div2" style="float:left" title="Optimised Circuit" id="circuit"></div>
+        <div  class="label" style="float:left" ><p>Original Circuit:</p></div>
+        <div  class="div4" style="float:left" title="Original Circuit"  id="old_circuit"></div>
+    </div>
     <script type="text/javascript" src="https://unpkg.com/quantum-circuit"></script>
     <script src="require.js"></script>
     <!--<script>window.languagePluginUrl = "https://de-luxham.github.io/web/";</script>-->
