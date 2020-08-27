@@ -551,7 +551,7 @@ define(['d3'], function(d3) {
         
                             var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
                             //Implementation of removing ids
-                            if ((selected_node.t == 1 || selected_node.t == 2) && selected_node.nhd.length == 2) {
+                            if ((selected_node.t == 1 || selected_node.t == 2) && selected_node.nhd.length == 2 && selected_node.phase == 0) {
                                 console.log("remove id");
                                 remove_node(selected_node);
                                 update();
@@ -742,7 +742,10 @@ def return_score(graph_qasm, architecture):
     zx.simplify.to_gh(g_copy)
     graph_semi=insert_ids_hadamards(g_copy)
 
-    circ_from_test=zx.extract.extract_circuit(graph_semi,optimize_czs=False, optimize_cnots=0) 
+    try:
+        circ_from_test=zx.extract.extract_circuit(graph_semi,optimize_czs=False, optimize_cnots=0)
+    except:
+        return {'qasm':qasm_initial,'score':"Current graph can't be extracted",'initial_qasm':qasm_initial,'stats':zx.circuit.Circuit.from_qasm(qasm_initial).stats()}
     
     #remove excess hadamards from qasm string
     qasm_final=remove_haddys(circ_from_test.to_qasm())
@@ -933,7 +936,10 @@ def Implement_Rules(data):
     graph_semi=insert_ids_hadamards(graph)
 
     #extract to circuit
-    circ_from_test=zx.extract.extract_circuit(graph_semi.copy(),optimize_czs=False, optimize_cnots=0,quiet=True)           
+    try:
+        circ_from_test=zx.extract.extract_circuit(graph_semi.copy(),optimize_czs=False, optimize_cnots=0,quiet=True)
+    except:
+        return graph,qasm
 
     #remove excess hadamards from qasm string
     qasm_final=remove_haddys(circ_from_test.to_qasm())
@@ -1121,6 +1127,9 @@ return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
         function fusion(selected_node,dead_node) {
         
             console.log("fusion applied");
+
+            //add the phases
+            selected_node.phase = add_phases(selected_node.phase,dead_node.phase);
             
             //remove connecting link
             graph.links = graph.links.filter(function(d) {return !(is_link(d,selected_node,dead_node)); });
@@ -1191,9 +1200,10 @@ return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
             node_count++;
 
             //Add new node to list of nodes, Can do this by copying slcied node appending then changing its values
-            var new_node = {name:node_count.toString(), x:sliced_node.x+20, y:sliced_node.y+20, t:sliced_node.t, phase:sliced_node.phase, selecetd:false, previouslySelected:false, index:node_count, vy:0, vx:0};
+            var new_node = {name:node_count.toString(), x:sliced_node.x+20, y:sliced_node.y+20, t:sliced_node.t, phase:sliced_node.phase/2, selecetd:false, previouslySelected:false, index:node_count, vy:0, vx:0};
 
-
+            //half phase of sliced node
+            sliced_node.phase = sliced_node.phase/2;
 
             graph.nodes.push(new_node);
 
@@ -1276,14 +1286,17 @@ return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
             //Implementation of changing qubit to red spider
             
                 //set the qubit node to the one specified by comb_red
-                if (comb_red == true) {
-                    selected_node.t = 2;
-                    comb_red = false;
-                }
-                else if (comb_red == false) {
-                    selected_node.t = 1;
-                    comb_red = true;
-                }
+                // if (comb_red == true) {
+                //     selected_node.t = 2;
+                //     comb_red = false;
+                // }
+                // else if (comb_red == false) {
+                //     selected_node.t = 1;
+                //     comb_red = true;
+                // }
+
+                //just make them all red instead
+                selected_node.t = 2;
 
                 selected_node.x = selected_node.x + 20
                 
@@ -1509,6 +1522,12 @@ return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
         }
 
         //end of rule string rules
+
+        //function to add phases
+        function add_phases(phase1,phase2) {
+            return (phase1+phase2) % (2*Math.PI);
+        }
+        
         
         //checks if slice region contains circle
         //more generally checks if point is contained in box defined by sline
@@ -1852,7 +1871,7 @@ return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
 
                     var selected_node = graph.nodes.filter(function(d) {return d.selected;})[0];
                     //Implementation of removing ids
-                    if ((selected_node.t == 1 || selected_node.t == 2) && selected_node.nhd.length == 2) {
+                    if ((selected_node.t == 1 || selected_node.t == 2) && selected_node.nhd.length == 2 && selected_node.phase == 0) {
                         console.log("remove id");
                         remove_node(selected_node);
                         update();

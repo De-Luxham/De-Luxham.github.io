@@ -25,14 +25,14 @@ _d3_display_seq = 0
 # javascript_location = '../js'
 # TODO: avoid duplicate (copied from drawing.py)
 def phase_to_s(a, t):
-    if (a == 0 and t != 3): return ''
-    if (a == 1 and t == 3): return ''
+    if (a == 0 and t != 3): return 0
+    if (a == 1 and t == 3): return 0
     if not isinstance(a, Fraction):
         a = Fraction(a)
-    ns = '' if a.numerator == 1 else str(a.numerator)
-    ds = '' if a.denominator == 1 else '/' + str(a.denominator)
+    ns = 1 if a.numerator == 1 else a.numerator
+    ds = 1 if a.denominator == 1 else a.denominator
     # unicode 0x03c0 = pi
-    return ns + '\u03c0' + ds
+    return ns/ds
 def draw(g, arqq, qasm, scale=None, auto_hbox=True, labels=False):
     global _d3_display_seq
     if not in_webpage: 
@@ -70,21 +70,16 @@ def draw(g, arqq, qasm, scale=None, auto_hbox=True, labels=False):
     html1 = """<!DOCTYPE html>
     <meta charset="utf-8">
     <style> body { font-family: sans-serif; }
-.div1 {
-  zoom:1;
-  margin: 0% 0% 0% 20%;
-  width: 100%;
-  height: 40%;
+.pyzx_graph_div {
+    margin: auto;
+  zoom:0.7;
   position:relative;
+  object-position:center;
 }
-.div2 {
-  zoom: 0.4;
-  margin: 0% 0px 0% 0px;
-  width: 100%;
-  height: 8%;
-  title:Optimised Circuit
-  text-align: left;
-  font-size: 15pt
+.opt_circ {
+  zoom: 0.3;
+  font-size: 15pt;
+  float: right;
   position:relative;
 }
 .div3 {
@@ -103,49 +98,28 @@ def draw(g, arqq, qasm, scale=None, auto_hbox=True, labels=False):
   font-size: 10px;
   position:relative;
 }
-.div4 {
-  zoom: 0.4;
-  margin: 0% 0px 0px 0px;
-  width: 100%;
-  height:8%;
-  text-align: left;
-  font-size: 15pt
+.org_circ {
+  zoom: 0.3;
+  float:left;
   position:relative;
 }
 .title_box {
-  margin: auto;
   text-align: center;
   width: 100%;
-  height:7%;
+  height:4%;
   border: 3px solid green;
   font-size: 20px;
   position: relative;
 }
-.label{
-  margin: auto;
-  text-align: left;
-  width: 100%;
-  height:1%;
-  font-size: 15px;
-  position: relative;
-}
-.container {
-  width: 100%
-}
+body{width: 95%;height: 95%;}
     </style>
     <body>
-    <div class="container">
-        <div class="title_box">
-        <p>Zedex: Pre-Alpha Testing</p>
-      </div>
-      <div class="div3" id="score"></div>
-      <div class="div5"  id="stats"></div>
-      <div  class="div1"   id="graph-output-1" ></div>
-      <div  class="label" style="float:left" ><p>Optimised Circuit:</p></div>
-        <div class="div2" style="float:left" title="Optimised Circuit" id="circuit"></div>
-        <div  class="label" style="float:left" ><p>Original Circuit:</p></div>
-        <div  class="div4" style="float:left" title="Original Circuit"  id="old_circuit"></div>
-    </div>
+        <div class="title_box"><p>Zedex: Pre-Alpha testing</p></div>
+        <div class="div3" id="score"></div>
+        <div class="div5"  id="stats"></div>
+        <div  class="pyzx_graph_div"  id="graph-output-1" ></div>
+        <div class="opt_circ" title="Optimised Circuit" id="circuit"></div>
+        <div  class="org_circ" style="float:left" title="Original Circuit"  id="old_circuit"></div>
     <script type="text/javascript" src="https://unpkg.com/quantum-circuit"></script>
     <script src="require.js"></script>
     <!--<script>window.languagePluginUrl = "https://de-luxham.github.io/web/";</script>-->
