@@ -891,8 +891,6 @@ def Implement_Rules(data):
         print(type(data[i][0]),data[i][0])
         if data[i][0]=="s":                     #If rule to perform is spider
             zx.rules.apply_rule(graph, new_spider, [[int(data[i][1]),int(data[i][2])]], check_isolated_vertices=True)
-            #display(zx.draw(graph,labels=True))
-            print(graph)
                             
         if data[i][0]=="u":  
             neighbours=data[i][2]                   #If rule to perform is unspider
@@ -906,8 +904,8 @@ def Implement_Rules(data):
                                                                     #start at the nearest neighbour entries
                 #neighbours.append(int(data[i][j])) 
             zx.rules.unspider(graph, [data[i][1], tuple(neighbours),data[i][3] ])
-            #display(zx.draw(graph,labels=True))
-            print(graph)
+            
+            
             
             
                 #The rules called here were written by me, and require lots more testing and rewriting
@@ -920,14 +918,13 @@ def Implement_Rules(data):
             j = graph.add_vertex(ty=data[i][3])
             graph.add_edge((id1,j),1)
             graph.add_edge((j,id2),1)
-            print(graph)
+            
             
             
         if data[i][0]=="ri":
             j = int(data[i][1])
             graph.add_edge((list(graph.neighbors(j))[0],list(graph.neighbors(j))[1]),1)
             graph.remove_vertex(j)
-            print(graph)
         
         #rules for changing qubit nodes to red spiders and vice versa
 
