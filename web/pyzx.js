@@ -629,6 +629,24 @@ import networkx as nx
 import copy
 
 
+def get_depth(qasm):
+
+    qasm_list=qasm.split("\\n")
+
+    occur_dict = dict()
+
+    #Loop to count the two qubit gates and store the qubits they act on
+    for element in qasm_list:
+        for i,s in enumerate(element):
+            if s == 'q':
+                qubit = element[i+2]
+                if qubit not in occur_dict.keys():
+                    occur_dict[qubit] = 1
+                else:
+                    #else add phase to existing entry
+                    occur_dict[qubit] += 1
+
+    return max(occur_dict.values())
 
 def insert_ids_hadamards(pyzx_graph1): 
     pyzx_semi=copy.deepcopy(pyzx_graph1)
@@ -816,6 +834,10 @@ def return_score(graph_qasm, architecture):
     print(score)
     
     stats = zx.circuit.Circuit.from_qasm(circuit_qasm_string).stats()
+
+    depth = str(get_depth(circuit_qasm_string))
+
+    stats = stats + " and the circuit depth is: " + depth
 
     output = {'qasm':circuit_qasm_string,'score':score,'initial_qasm':qasm_initial,'stats':stats}
             
