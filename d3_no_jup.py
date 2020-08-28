@@ -71,13 +71,14 @@ def draw(g, arqq, qasm, scale=None, auto_hbox=True, labels=False):
     <meta charset="utf-8">
     <style> body { font-family: sans-serif; }
 .pyzx_graph_div {
-    margin: auto;
-  zoom:0.7;
+  zoom:1;
+  margin: 10px 50px 20px;
+  width: 100%;
+  height: 30%;
   position:relative;
-  object-position:center;
 }
 .opt_circ {
-  zoom: 0.3;
+  zoom: 0.35;
   font-size: 15pt;
   float: right;
   position:relative;
@@ -99,7 +100,7 @@ def draw(g, arqq, qasm, scale=None, auto_hbox=True, labels=False):
   position:relative;
 }
 .org_circ {
-  zoom: 0.3;
+  zoom: 0.35;
   float:left;
   position:relative;
 }

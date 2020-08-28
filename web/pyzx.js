@@ -189,7 +189,7 @@ define(['d3'], function(d3) {
        //.attr("marker-end", "url(#end)")
        .attr("d",function(d) {
            console.log("M" + d.source.x + "," + d.source.y  + ","+"Q" + (d.source.x+d.target.x)/2 + x_off + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y);
-           return "M" + d.source.x + "," + d.source.y + ","+ "Q" + ((1/50)*Math.abs(d.source.y-d.target.y)*((parseFloat(d.source.x)+parseFloat(d.target.x)/2) + parseFloat(x_off))).toString() + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y
+           return "M" + d.source.x + "," + d.source.y + ","+ "Q" + ((parseFloat(d.source.x)+parseFloat(d.target.x)/2) + parseFloat(x_off)).toString() + "," + (d.source.y+d.target.y)/2 + "," + d.target.x + "," +d.target.y
        })
        .attr("fill", "none");
 
@@ -278,8 +278,8 @@ define(['d3'], function(d3) {
     
         //New variables added between these lines
         //dimension variables have offsets, hard coded for now but that may change
-        var width = svg.attr("width"),
-            height = svg.attr("height")+1,
+        var width = svg.attr("width")+100,
+            height = svg.attr("height")+100,
             radius = node_size;
 
         var node_count = graph.nodes.length-1,
@@ -747,12 +747,16 @@ def return_score(graph_qasm, architecture):
 
     qasm_initial = graph_qasm[1]
 
+    extract_success = graph_qasm[2]
+
     print(architecture)
     #temporarily doing a full reduce
     #zx.full_reduce(graph_pyzx)
 
-
-
+    if extract_success == True:
+        extract_msg = "Circuit succesfully extracted"
+    else:
+        extract_msg = "Warning! Extracted circuit is not equivalent to original circuit!" 
 
     g_copy = copy.deepcopy(graph_pyzx)
 
@@ -837,7 +841,7 @@ def return_score(graph_qasm, architecture):
 
     depth = str(get_depth(circuit_qasm_string))
 
-    stats = stats + " and the circuit depth is: " + depth
+    stats = stats + " and the circuit depth is: " + depth + " Extraction:" + extract_msg
 
     output = {'qasm':circuit_qasm_string,'score':score,'initial_qasm':qasm_initial,'stats':stats}
             
@@ -934,6 +938,13 @@ def Implement_Rules(data):
         if data[i][0] == "rq":
             graph.inputs.append(data[i][1])
             graph.set_type(data[i][1],0)
+            spider_qubit = graph.qubit(data[i][1])
+            node_qubit = data[i][2]
+            for v in graph.vertices():
+                if graph.qubit(v) == spider_qubit:
+                    graph.set_qubit(v,node_qubit) 
+                if graph.qubit(v) == node_qubit:
+                    graph.set_qubit(v,spider_qubit)
 
         if data[i][0] == "cc":
 
@@ -961,7 +972,7 @@ def Implement_Rules(data):
     try:
         circ_from_test=zx.extract.extract_circuit(graph_semi.copy(),optimize_czs=False, optimize_cnots=0,quiet=True)
     except:
-        return graph,qasm
+        return graph,qasm,False
 
     #remove excess hadamards from qasm string
     qasm_final=remove_haddys(circ_from_test.to_qasm())
@@ -971,10 +982,10 @@ def Implement_Rules(data):
 
     #convert this to an if statement
     #if true display circuit, if False error message
-    print(zx.compare_tensors(zx.circuit.Circuit.to_tensor(final_circuit),zx.circuit.Circuit.to_tensor(zx.circuit.Circuit.from_qasm(qasm))))
+    extract_success = zx.compare_tensors(zx.circuit.Circuit.to_tensor(final_circuit),zx.circuit.Circuit.to_tensor(zx.circuit.Circuit.from_qasm(qasm)))
 
                 
-    return graph,qasm
+    return graph,qasm,extract_success
 return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
             
             
@@ -1353,11 +1364,11 @@ return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
             //case if this is the first rule applied 
             if (rule_string.length == 2){
             
-                rule_string = "[[".concat("\"rq\"",",",selected_node.name,"]]");
+                rule_string = "[[".concat("\"rq\"",",",selected_node.name,",",recomb_node.name,"]]");
             
             } else {
             rule_string = rule_string.slice(0,-1);
-            rq_string = ",[".concat("\"rq\"",",",selected_node.name,"]]");
+            rq_string = ",[".concat("\"rq\"",",",selected_node.name,",",recomb_node.name,"]]");
             rule_string = rule_string.concat(rq_string);
             }
         }
@@ -1639,12 +1650,12 @@ return_score(Implement_Rules(`+rule_string+'),'+connectivity_string+')')
             
             //stuff to keep nodes inside a box
             
-            node.attr("transform", function(d) {
-                d.x = Math.max(radius, Math.min(width - radius -100, d.x));
-                //manualy changed height of box with offset
-                d.y = Math.max(radius, Math.min(height - radius -100, d.y));
-                return "translate(" + d.x + "," + d.y +")";
-             })
+            // node.attr("transform", function(d) {
+            //     d.x = Math.max(radius, Math.min(width - radius -100, d.x));
+            //     //manualy changed height of box with offset
+            //     d.y = Math.max(radius, Math.min(height - radius -100, d.y));
+            //     return "translate(" + d.x + "," + d.y +")";
+            //  })
         
             link.attr("x1", function(d) { return d.source.x; })
                 .attr("y1", function(d) { return d.source.y; })
