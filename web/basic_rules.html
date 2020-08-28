@@ -213,11 +213,11 @@ body {font-size:16px;}
     <hr style="width:50px;border:5px solid red" class="w3-round">
     
       <h1>Optimising a GHZ circuit:</h1>
-      <img src="Line1.png" style="width:70%" onclick="onClick(this)" alt="Spider Identity Rule">
+      <img src="Line1.PNG" style="width:70%" onclick="onClick(this)" alt="Spider Identity Rule">
       <figcaption> Here is one example of how a level in our game can be completed, which shows the GHZ example. The level starts in (a) with the basic GHZ state. This Figure shows that the initial ZX graph would require a large number of swap gates to be implemented in its current form. As this circuit takes in a set of qubits in a specified state, the qubit to spider rule can be applied to pull four red spiders out of four of the nodes, as shown (b). From this the four red spiders can then by fused with the other red spiders that they connect to via the spider fusion rule, as shown in (c). Now that the red spiders only have two wires connected and a phase of 0 Rad they can be treated as identities and the spider identity rule can be applied. This gives a graph as shown in (d).</figcaption>
-      <img src="Line2.png" style="width:70%" onclick="onClick(this)" alt="Spider Identity Rule">
+      <img src="Line2.PNG" style="width:70%" onclick="onClick(this)" alt="Spider Identity Rule">
       <figcaption>This state can then be moved to better fit the architecture. By applying the Qubit to Spider rule the node of qubit 0 can be changed to a spider and then be converted back to a node at a position that better suits the architecture, as shown in (e) and (f). Using the Spider Fusion rule the five green spiders can be fused to produce the diagram in (g). By applying two slices on the single green spider in (g) two more green spiders can be made in the positions shown in (h). These slices were done such to slice along the path of qubit 2 and to produce green spiders that spread out in a column.</figcaption>
-      <img src="Line3.png" style="width:70%" onclick="onClick(this)" alt="Spider Identity Rule">
+      <img src="Line3.PNG" style="width:70%" onclick="onClick(this)" alt="Spider Identity Rule">
       <figcaption>The central green spider can then be further sliced to separate this column of spiders into two columns of two spiders.  Each of these two new spiders connect to two output nodes as shown in (i). The Spider Identity rule can then be used to place four red spiders into the diagram, in such a way that the new graph optimally fits the architecture. This can be seen in (j) and (k). The Spider Fusion rule can then be used to perform a slice on all of the red spiders in order reconnect the circuit back to the nodes, as shown in Figure (l). This then produces the circuit that optimally fits the architecture, but only for the specific input state. The output of this circuit and the initial circuit may differ if any other input state is used.</figcaption>
     
     
@@ -260,7 +260,7 @@ body {font-size:16px;}
       
     <div class="w3-col m4 w3-margin-bottom">
       <div class="w3-light-grey">
-        <img src="Seb.png" alt="Seb" style="width:100%">
+        <img src="seb.png" alt="Seb" style="width:100%">
         <div class="w3-container">
           <h3>Seb Currie</h3>
           <p class="w3-opacity">Tea and coffee.</p>
